@@ -1,0 +1,2776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataFarm Kenya — AI Agricultural Advisory System v2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --soil: #3d2b1f;
+    --earth: #6b4226;
+    --savanna: #c8a84b;
+    --leaf: #2d6a4f;
+    --mint: #52b788;
+    --sky: #1a6985;
+    --rain: #48cae4;
+    --harvest: #f4a261;
+    --pest: #e63946;
+    --greenhouse: #a8dadc;
+    --glass: #457b9d;
+    --bg: #0d1f0f;
+    --surface: #122015;
+    --card: #1a2e1d;
+    --border: #2a4030;
+    --text: #d8f3dc;
+    --muted: #74a57f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  header {
+    padding: 60px 40px 40px;
+    text-align: center;
+    position: relative;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--mint), transparent);
+  }
+
+  .badge {
+    display: inline-block;
+    background: var(--leaf);
+    color: var(--mint);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    padding: 6px 16px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .badge-new {
+    display: inline-block;
+    background: rgba(168, 218, 220, 0.15);
+    color: var(--greenhouse);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-left: 10px;
+    border: 1px solid var(--greenhouse);
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 900;
+    line-height: 1.1;
+    background: linear-gradient(135deg, var(--savanna) 0%, var(--mint) 60%, var(--rain) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 300;
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .main {
+    padding: 60px 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* === OVERVIEW PILLARS === */
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 80px;
+  }
+
+  .pillar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+
+  .pillar:hover {
+    transform: translateY(-4px);
+    border-color: var(--mint);
+  }
+
+  .pillar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .pillar.weather::before { background: var(--rain); }
+  .pillar.soil::before { background: var(--earth); }
+  .pillar.price::before { background: var(--savanna); }
+  .pillar.pest::before { background: var(--pest); }
+  .pillar.advisory::before { background: var(--mint); }
+  .pillar.geo::before { background: linear-gradient(90deg, var(--mint), var(--rain)); }
+  .pillar.greenhouse::before { background: var(--greenhouse); }
+
+  .pillar-icon { font-size: 32px; margin-bottom: 12px; display: block; }
+  .pillar-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .pillar-desc {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  /* === SECTION TITLES === */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--savanna);
+    margin-bottom: 8px;
+  }
+
+  .section-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 36px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* === WORKFLOW PIPELINE === */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 80px;
+  }
+
+  .phase {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 0;
+    position: relative;
+  }
+
+  .phase-label {
+    padding: 32px 24px 32px 0;
+    border-right: 2px solid var(--border);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .phase-label::after {
+    content: '';
+    position: absolute;
+    right: -7px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--mint);
+    border: 2px solid var(--bg);
+  }
+
+  .phase-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+
+  .phase-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--mint);
+    text-align: right;
+  }
+
+  .phase-content {
+    padding: 24px 0 24px 40px;
+  }
+
+  .phase-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .pc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.25s;
+    cursor: default;
+  }
+
+  .pc:hover {
+    background: #1e3825;
+    border-color: var(--mint);
+    transform: scale(1.02);
+  }
+
+  .pc.greenhouse-card {
+    border-color: rgba(168,218,220,0.3);
+    background: rgba(69, 123, 157, 0.08);
+  }
+  .pc.greenhouse-card:hover {
+    border-color: var(--greenhouse);
+    background: rgba(69, 123, 157, 0.15);
+    transform: scale(1.02);
+  }
+
+  .pc-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .pc-label.blue { color: var(--rain); }
+  .pc-label.amber { color: var(--savanna); }
+  .pc-label.red { color: var(--pest); }
+  .pc-label.green { color: var(--mint); }
+  .pc-label.orange { color: var(--harvest); }
+  .pc-label.teal { color: var(--greenhouse); }
+
+  .pc-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .pc-detail {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .pc-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 10px;
+  }
+
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    background: var(--border);
+    color: var(--muted);
+    padding: 3px 8px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+  }
+
+  .tag.teal {
+    background: rgba(168,218,220,0.1);
+    color: var(--greenhouse);
+    border: 1px solid rgba(168,218,220,0.2);
+  }
+
+  /* Arrow between phases */
+  .phase-connector {
+    display: flex;
+    align-items: center;
+    padding-left: 200px;
+    height: 24px;
+    position: relative;
+  }
+
+  .phase-connector::before {
+    content: '';
+    position: absolute;
+    left: 199px;
+    width: 2px;
+    height: 24px;
+    background: linear-gradient(to bottom, var(--border), var(--mint), var(--border));
+  }
+
+  /* === PRECISION GEO SECTION === */
+  .geo-section {
+    margin-bottom: 80px;
+  }
+
+  .geo-drilldown {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .geo-drilldown::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--mint), var(--rain), var(--greenhouse));
+  }
+
+  .geo-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 40px;
+  }
+
+  .geo-layer {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 0;
+    position: relative;
+  }
+
+  .geo-layer-left {
+    padding: 20px 24px 20px 0;
+    border-right: 2px solid var(--border);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .geo-layer-left::after {
+    content: '';
+    position: absolute;
+    right: -7px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+  }
+
+  .geo-layer:nth-child(1) .geo-layer-left::after { background: var(--muted); }
+  .geo-layer:nth-child(2) .geo-layer-left::after { background: var(--savanna); }
+  .geo-layer:nth-child(3) .geo-layer-left::after { background: var(--harvest); }
+  .geo-layer:nth-child(4) .geo-layer-left::after { background: var(--mint); }
+  .geo-layer:nth-child(5) .geo-layer-left::after { background: var(--rain); }
+  .geo-layer:nth-child(6) .geo-layer-left::after { background: #a2d6f9; }
+
+  .geo-layer-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-align: right;
+    line-height: 1.4;
+  }
+
+  .geo-layer-resolution {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    text-align: right;
+  }
+
+  .geo-layer:nth-child(1) .geo-layer-resolution { color: var(--muted); }
+  .geo-layer:nth-child(2) .geo-layer-resolution { color: var(--savanna); }
+  .geo-layer:nth-child(3) .geo-layer-resolution { color: var(--harvest); }
+  .geo-layer:nth-child(4) .geo-layer-resolution { color: var(--mint); }
+  .geo-layer:nth-child(5) .geo-layer-resolution { color: var(--rain); }
+  .geo-layer:nth-child(6) .geo-layer-resolution { color: #a2d6f9; }
+
+  .geo-layer-right {
+    padding: 20px 0 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .geo-layer-content {
+    flex: 1;
+  }
+
+  .geo-layer-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .geo-layer-detail {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .geo-layer-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .geo-layer:nth-child(1) .geo-layer-badge { background: rgba(116,165,127,0.15); color: var(--muted); border: 1px solid rgba(116,165,127,0.3); }
+  .geo-layer:nth-child(2) .geo-layer-badge { background: rgba(200,168,75,0.15); color: var(--savanna); border: 1px solid rgba(200,168,75,0.3); }
+  .geo-layer:nth-child(3) .geo-layer-badge { background: rgba(244,162,97,0.15); color: var(--harvest); border: 1px solid rgba(244,162,97,0.3); }
+  .geo-layer:nth-child(4) .geo-layer-badge { background: rgba(82,183,136,0.15); color: var(--mint); border: 1px solid rgba(82,183,136,0.3); }
+  .geo-layer:nth-child(5) .geo-layer-badge { background: rgba(72,202,228,0.15); color: var(--rain); border: 1px solid rgba(72,202,228,0.3); }
+  .geo-layer:nth-child(6) .geo-layer-badge { background: rgba(162,214,249,0.15); color: #a2d6f9; border: 1px solid rgba(162,214,249,0.3); }
+
+  .geo-layer-connector {
+    height: 16px;
+    padding-left: 180px;
+    position: relative;
+  }
+  .geo-layer-connector::before {
+    content: '';
+    position: absolute;
+    left: 179px;
+    width: 2px;
+    height: 16px;
+    background: var(--border);
+  }
+
+  .geo-micro-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .geo-micro-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+  .geo-micro-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--mint);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .geo-micro-desc {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* === ML MODEL SECTION === */
+  .ml-section {
+    margin-bottom: 80px;
+  }
+
+  .ml-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 768px) {
+    .ml-grid { grid-template-columns: 1fr; }
+    .phase { grid-template-columns: 1fr; }
+    .phase-label { align-items: flex-start; border-right: none; border-left: 2px solid var(--border); padding: 16px 0 8px 24px; }
+    .phase-label::after { left: -7px; right: auto; }
+    .phase-content { padding: 16px 0 16px 24px; }
+    .phase-connector { padding-left: 24px; }
+    .phase-connector::before { left: 23px; }
+    .geo-layer { grid-template-columns: 1fr; }
+    .geo-layer-left { border-right: none; border-left: 2px solid var(--border); align-items: flex-start; padding: 12px 0 8px 24px; }
+    .geo-layer-left::after { left: -7px; right: auto; }
+    .geo-layer-right { padding: 8px 0 12px 24px; }
+    .geo-layer-connector { padding-left: 24px; }
+    .geo-layer-connector::before { left: 23px; }
+  }
+
+  .ml-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ml-card::after {
+    content: attr(data-model);
+    position: absolute;
+    bottom: -20px;
+    right: -10px;
+    font-family: 'Playfair Display', serif;
+    font-size: 80px;
+    font-weight: 900;
+    opacity: 0.04;
+    color: var(--mint);
+    pointer-events: none;
+  }
+
+  .ml-card-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .ml-card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--savanna);
+    margin-bottom: 16px;
+  }
+
+  .ml-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .ml-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--mint);
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .ml-dot.teal { background: var(--greenhouse); }
+
+  .ml-feature span {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .ml-inputs {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .ml-inputs-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    background: rgba(82, 183, 136, 0.1);
+    border: 1px solid rgba(82, 183, 136, 0.25);
+    color: var(--mint);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .chip.teal {
+    background: rgba(168, 218, 220, 0.1);
+    border: 1px solid rgba(168, 218, 220, 0.25);
+    color: var(--greenhouse);
+  }
+
+  .chip.amber {
+    background: rgba(200, 168, 75, 0.1);
+    border: 1px solid rgba(200, 168, 75, 0.25);
+    color: var(--savanna);
+  }
+
+  /* === ADVISORY FLOW === */
+  .advisory-section {
+    margin-bottom: 80px;
+  }
+
+  .advisory-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .advisory-tab {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: default;
+  }
+
+  .advisory-tab.field {
+    background: rgba(82,183,136,0.15);
+    border: 1px solid var(--mint);
+    color: var(--mint);
+  }
+
+  .advisory-tab.gh {
+    background: rgba(168,218,220,0.12);
+    border: 1px solid var(--greenhouse);
+    color: var(--greenhouse);
+  }
+
+  .advisory-flow {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    margin-bottom: 24px;
+  }
+
+  .advisory-flow.greenhouse-flow {
+    border-color: rgba(168,218,220,0.3);
+    background: rgba(69, 123, 157, 0.05);
+  }
+
+  .advisory-flow-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .advisory-flow-label.field { color: var(--mint); }
+  .advisory-flow-label.gh { color: var(--greenhouse); }
+
+  .af-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .af-row:last-child { margin-bottom: 0; }
+
+  .af-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--text);
+    flex: 1;
+    min-width: 130px;
+    text-align: center;
+  }
+
+  .af-box.gh-box {
+    border-color: rgba(168,218,220,0.2);
+    background: rgba(69,123,157,0.08);
+  }
+
+  .af-box strong {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .af-arrow {
+    color: var(--mint);
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .af-arrow.gh { color: var(--greenhouse); }
+
+  .af-result {
+    background: linear-gradient(135deg, rgba(44, 106, 79, 0.3), rgba(72, 202, 228, 0.1));
+    border: 1px solid var(--mint);
+    border-radius: 10px;
+    padding: 20px 24px;
+    text-align: center;
+  }
+
+  .af-result.gh-result {
+    background: linear-gradient(135deg, rgba(69, 123, 157, 0.2), rgba(168, 218, 220, 0.08));
+    border-color: var(--greenhouse);
+  }
+
+  .af-result strong {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--mint);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .af-result.gh-result strong { color: var(--greenhouse); }
+
+  .af-result span {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* === GREENHOUSE SECTION === */
+  .greenhouse-section {
+    margin-bottom: 80px;
+  }
+
+  .gh-header {
+    background: linear-gradient(135deg, rgba(69,123,157,0.15), rgba(168,218,220,0.06));
+    border: 1px solid rgba(168,218,220,0.25);
+    border-radius: 16px;
+    padding: 36px 40px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .gh-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--greenhouse), var(--glass));
+  }
+
+  .gh-header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    color: var(--greenhouse);
+    margin-bottom: 10px;
+  }
+
+  .gh-header-desc {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 800px;
+  }
+
+  .gh-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .gh-card {
+    background: var(--card);
+    border: 1px solid rgba(168,218,220,0.2);
+    border-radius: 14px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s;
+  }
+
+  .gh-card:hover {
+    border-color: var(--greenhouse);
+    transform: translateY(-3px);
+  }
+
+  .gh-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--greenhouse);
+    opacity: 0.6;
+  }
+
+  .gh-card-icon { font-size: 28px; margin-bottom: 12px; }
+
+  .gh-card-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--greenhouse);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .gh-card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .gh-card-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .gh-card-features {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .gh-feat {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .gh-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--greenhouse);
+    margin-top: 7px;
+    flex-shrink: 0;
+  }
+
+  /* === TECH STACK === */
+  .stack-section { margin-bottom: 80px; }
+
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+  }
+
+  .stack-cat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+  }
+
+  .stack-cat.greenhouse-stack {
+    border-color: rgba(168,218,220,0.25);
+    background: rgba(69,123,157,0.05);
+  }
+
+  .stack-cat-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--savanna);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stack-cat.greenhouse-stack .stack-cat-title { color: var(--greenhouse); }
+
+  .stack-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(42,64,48,0.5);
+    font-size: 13px;
+  }
+
+  .stack-item:last-child { border-bottom: none; }
+
+  .stack-item-name { color: var(--text); }
+  .stack-item-role {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    text-align: right;
+    max-width: 120px;
+  }
+
+  /* === KPIs === */
+  .kpi-section { margin-bottom: 80px; }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+  }
+
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .kpi-card.gh-kpi {
+    border-color: rgba(168,218,220,0.2);
+    background: rgba(69,123,157,0.06);
+  }
+
+  .kpi-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: var(--savanna);
+    display: block;
+  }
+
+  .kpi-card.gh-kpi .kpi-value { color: var(--greenhouse); }
+
+  .kpi-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 40px;
+    border-top: 1px solid var(--border);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  /* Callout box */
+  .callout {
+    background: rgba(82,183,136,0.08);
+    border-left: 3px solid var(--mint);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .callout.gh-callout {
+    border-left-color: var(--greenhouse);
+    background: rgba(168,218,220,0.06);
+  }
+
+  .callout strong {
+    color: var(--mint);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  .callout.gh-callout strong { color: var(--greenhouse); }
+
+
+  /* === NEW IMPROVEMENTS v2.1 === */
+  /* === LANGUAGE TOGGLE === */
+  .lang-toggle {
+    display: inline-flex; align-items: center; gap: 0;
+    border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+    margin-top: 14px;
+  }
+  .lang-btn {
+    font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px;
+    padding: 6px 14px; cursor: pointer; background: transparent; border: none;
+    color: var(--muted); text-transform: uppercase; transition: all 0.2s;
+  }
+  .lang-btn:first-child { border-right: 1px solid var(--border); }
+  .lang-btn.lang-active { background: var(--leaf); color: var(--mint); }
+
+  /* === GPS MODAL (IMPROVED) === */
+  .gps-fab {
+    position: fixed; bottom: 32px; right: 32px; z-index: 2000;
+    background: linear-gradient(135deg, var(--leaf), #1a4a35);
+    border: 2px solid var(--mint); color: var(--mint);
+    font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 2px;
+    padding: 14px 22px; border-radius: 50px; cursor: pointer;
+    box-shadow: 0 4px 24px rgba(82,183,136,0.35);
+    display: flex; align-items: center; gap: 10px; transition: all 0.3s;
+    text-transform: uppercase;
+  }
+  .gps-fab:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(82,183,136,0.5); border-color: var(--rain); color: var(--rain); }
+  .gps-fab .fab-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--mint); animation: blink 1.4s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+  .gps-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); z-index:3000; align-items:center; justify-content:center; padding:20px; }
+  .gps-overlay.open { display:flex; }
+  .gps-modal {
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+    width: 100%; max-width: 860px; max-height: 92vh; overflow-y: auto; position: relative;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  }
+  .gps-modal::before { content:''; position:absolute; top:0;left:0;right:0;height:3px;border-radius:20px 20px 0 0;background:linear-gradient(90deg,var(--mint),var(--rain),var(--greenhouse)); }
+
+  .gps-mhead { padding:28px 32px 18px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
+  .gps-mhead-left { flex:1; }
+  .gps-mhead-top { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:4px; }
+  .gps-mtitle { font-family:'Playfair Display',serif; font-size:24px; color:var(--mint); }
+  .gps-msub { font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:2px; }
+  .gps-close { background:var(--surface); border:1px solid var(--border); color:var(--muted); width:36px;height:36px; border-radius:50%; display:flex;align-items:center;justify-content:center; cursor:pointer; font-size:18px; flex-shrink:0; transition:all 0.2s; }
+  .gps-close:hover { border-color:var(--pest); color:var(--pest); }
+  .gps-mbody { padding:24px 32px 32px; }
+
+  .ftype-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+  .ftype-btn { background:var(--surface); border:2px solid var(--border); border-radius:12px; padding:16px; cursor:pointer; text-align:center; transition:all 0.2s; }
+  .ftype-btn:hover,.ftype-btn.active { border-color:var(--mint); background:rgba(82,183,136,0.08); }
+  .ftype-btn.gh:hover,.ftype-btn.gh.active { border-color:var(--greenhouse); background:rgba(168,218,220,0.08); }
+  .ftype-icon { font-size:26px; margin-bottom:5px; }
+  .ftype-label { font-family:'Space Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+  .ftype-btn.active .ftype-label { color:var(--mint); }
+  .ftype-btn.gh.active .ftype-label { color:var(--greenhouse); }
+
+  .gps-btn { width:100%; background:linear-gradient(135deg,rgba(82,183,136,0.15),rgba(72,202,228,0.08)); border:2px solid var(--mint); border-radius:12px; color:var(--mint); font-family:'Space Mono',monospace; font-size:13px; letter-spacing:2px; text-transform:uppercase; padding:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:12px; transition:all 0.3s; }
+  .gps-btn:hover:not(:disabled) { background:linear-gradient(135deg,rgba(82,183,136,0.25),rgba(72,202,228,0.15)); box-shadow:0 0 24px rgba(82,183,136,0.2); }
+  .gps-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .spin { display:inline-block; animation:spin 1s linear infinite; }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+  .div-label { display:flex;align-items:center;gap:12px;margin-bottom:14px;color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px; }
+  .div-label::before,.div-label::after { content:'';flex:1;height:1px;background:var(--border); }
+
+  .man-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .man-inp { background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;padding:12px 14px;width:100%;transition:border-color 0.2s;outline:none; }
+  .man-inp:focus { border-color:var(--mint); }
+  .man-inp.error { border-color:var(--pest); }
+  .man-inp::placeholder { color:var(--muted); }
+  .man-sub { width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:12px;cursor:pointer;transition:all 0.2s;margin-bottom:16px; }
+  .man-sub:hover { border-color:var(--savanna);color:var(--savanna); }
+
+  .gps-status { font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;text-align:center;margin-bottom:16px;min-height:20px;transition:all 0.3s;padding:8px 12px;border-radius:6px; }
+  .gps-status.scanning{color:var(--rain);background:rgba(72,202,228,0.06)} 
+  .gps-status.success{color:var(--mint);background:rgba(82,183,136,0.06)} 
+  .gps-status.error{color:var(--pest);background:rgba(230,57,70,0.06)} 
+  .gps-status.idle{color:var(--muted)}
+
+  /* Progress steps */
+  .progress-steps { display:flex; gap:0; margin-bottom:14px; overflow:hidden; border-radius:6px; }
+  .progress-step { flex:1; height:3px; background:var(--border); transition:background 0.4s; }
+  .progress-step.done { background:var(--mint); }
+  .progress-step.active { background:var(--rain); animation:pulse-bar 1s ease-in-out infinite; }
+  @keyframes pulse-bar { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  /* Retry button */
+  .retry-btn { display:none;width:100%;background:rgba(230,57,70,0.08);border:1px solid rgba(230,57,70,0.3);border-radius:8px;color:var(--pest);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:10px;cursor:pointer;transition:all 0.2s;margin-bottom:14px; }
+  .retry-btn:hover { background:rgba(230,57,70,0.15); }
+  .retry-btn.show { display:block; }
+
+  /* Map */
+  #dfmap { width:100%;height:280px;border-radius:12px;border:1px solid var(--border);margin-bottom:16px;display:none;overflow:hidden;background:var(--surface); }
+  #dfmap.show { display:block; }
+  .map-error { display:none;align-items:center;justify-content:center;height:280px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;margin-bottom:16px;text-align:center; }
+  .map-error.show { display:flex; }
+
+  /* Plot profile */
+  .pprofile { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:none; }
+  .pprofile.show { display:block; }
+  .pptitle { font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--mint);margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap; }
+  .ppgrid { display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:14px; }
+  .ppstat { background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px; }
+  .ppstat-label { font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:5px; }
+  .ppstat-value { font-family:'Playfair Display',serif;font-size:17px;color:var(--savanna); }
+  .ppstat-sub { font-size:10px;color:var(--muted);margin-top:2px; }
+  .est-badge { font-family:'Space Mono',monospace;font-size:8px;background:rgba(200,168,75,0.12);color:var(--savanna);border:1px solid rgba(200,168,75,0.25);padding:1px 5px;border-radius:2px;letter-spacing:1px; }
+  .ver-badge { font-family:'Space Mono',monospace;font-size:8px;background:rgba(82,183,136,0.12);color:var(--mint);border:1px solid rgba(82,183,136,0.25);padding:1px 5px;border-radius:2px;letter-spacing:1px; }
+
+  .pp-advisory { background:linear-gradient(135deg,rgba(44,106,79,0.2),rgba(72,202,228,0.06));border:1px solid var(--mint);border-radius:10px;padding:14px 18px;font-size:13px;color:var(--text);line-height:1.7;margin-bottom:14px; }
+  .pp-advisory.gh-adv { border-color:var(--greenhouse);background:linear-gradient(135deg,rgba(69,123,157,0.15),rgba(168,218,220,0.05)); }
+  .pp-advisory strong { color:var(--mint);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:6px; }
+  .pp-advisory.gh-adv strong { color:var(--greenhouse); }
+
+  /* Planting calendar */
+  .pp-section-title { font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--savanna);margin:14px 0 10px;padding-top:14px;border-top:1px solid var(--border); }
+  .cal-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px; }
+  .cal-card { background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px; }
+  .cal-season { font-family:'Space Mono',monospace;font-size:9px;color:var(--rain);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px; }
+  .cal-season.s2 { color:var(--harvest); }
+  .cal-row { display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px; }
+  .cal-key { font-size:11px;color:var(--muted); }
+  .cal-val { font-family:'Space Mono',monospace;font-size:11px;color:var(--text); }
+  .cal-crops { margin-top:8px;font-size:12px;color:var(--text);line-height:1.6; }
+
+  /* Markets */
+  .markets-list { display:flex;flex-direction:column;gap:6px;margin-bottom:14px; }
+  .market-item { display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:12px; }
+  .market-num { font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);width:16px;flex-shrink:0; }
+  .market-name { color:var(--text);flex:1; }
+  .market-tag { font-family:'Space Mono',monospace;font-size:9px;color:var(--savanna);letter-spacing:1px;background:rgba(200,168,75,0.08);border:1px solid rgba(200,168,75,0.2);padding:2px 6px;border-radius:3px; }
+
+  /* Action buttons */
+  .pp-actions { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px; }
+  .share-btn { background:linear-gradient(135deg,rgba(37,211,102,0.15),rgba(37,211,102,0.06));border:1px solid rgba(37,211,102,0.4);color:#25d366;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:12px;border-radius:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px; }
+  .share-btn:hover { background:rgba(37,211,102,0.2); }
+  .reset-btn { background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:12px;border-radius:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px; }
+  .reset-btn:hover { border-color:var(--muted);color:var(--text); }
+
+  .abadge { display:inline-flex;align-items:center;font-family:'Space Mono',monospace;font-size:9px;padding:3px 8px;border-radius:3px;margin-left:6px;vertical-align:middle; }
+  .abadge.high { background:rgba(82,183,136,0.15);color:var(--mint);border:1px solid rgba(82,183,136,0.3); }
+  .abadge.med { background:rgba(200,168,75,0.15);color:var(--savanna);border:1px solid rgba(200,168,75,0.3); }
+
+  @media(max-width:600px){
+    .gps-mhead,.gps-mbody{padding:16px}
+    .man-row,.cal-grid,.pp-actions{grid-template-columns:1fr}
+    .gps-fab{bottom:16px;right:12px;padding:10px 14px;font-size:10px}
+  }
+
+</style>
+
+</head>
+<body>
+
+<body>
+
+<header>
+  <div class="badge">🌍 Kenya · Real-Time AI · Agricultural Intelligence</div>
+  <h1>DataFarm Kenya<br>AI Agent Workflow</h1>
+  <p class="subtitle">A full-stack intelligent system with hyper-local GPS precision, greenhouse intelligence pathway, ML price prediction, and pest advisory — empowering every Kenyan farmer, wherever they farm.</p>
+
+  <div style="margin-top:10px">
+    <div class="lang-toggle">
+      <button class="lang-btn lang-active" id="headerLangEn" onclick="setLang('en')">🇬🇧 EN</button>
+      <button class="lang-btn" id="headerLangSw" onclick="setLang('sw')">🇰🇪 SW</button>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- PILLARS -->
+  <div class="pillars">
+    <div class="pillar geo">
+      <span class="pillar-icon">📍</span>
+      <div class="pillar-title">Hyper-Local Precision</div>
+      <div class="pillar-desc">GPS → 30m micro-AEZ grid. Ward-level soil + elevation + slope data for recommendations specific to your exact plot.</div>
+    </div>
+    <div class="pillar weather">
+      <span class="pillar-icon">🌧️</span>
+      <div class="pillar-title">Weather Intelligence</div>
+      <div class="pillar-desc">Real-time & forecast data from Kenya Met Dept + OpenWeatherMap, resolved to the nearest weather station per ward.</div>
+    </div>
+    <div class="pillar soil">
+      <span class="pillar-icon">🪨</span>
+      <div class="pillar-title">Soil Analysis</div>
+      <div class="pillar-desc">Soil pH, NPK levels, moisture & texture from iSDAsoil Africa at 30m resolution + optional IoT sensor inputs.</div>
+    </div>
+    <div class="pillar price">
+      <span class="pillar-icon">📈</span>
+      <div class="pillar-title">Price ML Model</div>
+      <div class="pillar-desc">Time-series forecasting on AMIS & KNBS market data to predict crop prices at harvest, weighted by nearest market.</div>
+    </div>
+    <div class="pillar pest">
+      <span class="pillar-icon">🐛</span>
+      <div class="pillar-title">Pest & Disease Advisory</div>
+      <div class="pillar-desc">Climate-triggered pest risk detection with CABI database integration and PCPB-approved pesticide recommendations.</div>
+    </div>
+    <div class="pillar greenhouse">
+      <span class="pillar-icon">🏠</span>
+      <div class="pillar-title">Greenhouse Pathway</div>
+      <div class="pillar-desc">Separate advisory track for controlled-environment farmers: irrigation, nutrition, internal pest/disease, crop ROI.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- PRECISION LOCATION ENGINE                               -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="geo-section">
+    <div class="section-title">Precision Location Engine</div>
+    <div class="section-sub">// resolving a farmer's exact plot — county is just the start</div>
+
+    <div class="callout">
+      <strong>Why this matters</strong>
+      Murang'a County alone spans altitudes from 900m to over 3,000m and crosses multiple agro-ecological zones — coastal lowlands, mid-altitude slopes, and high-altitude tea zones all within the same county boundaries. Recommending "plant tea" to everyone in Murang'a is not just inaccurate — it can cause real financial harm to farmers in unsuitable zones. This precision engine resolves each query to a 30m × 30m micro-cell before any crop model runs.
+    </div>
+
+    <div class="geo-drilldown">
+      <div class="geo-layers">
+
+        <!-- Layer 1: County -->
+        <div class="geo-layer">
+          <div class="geo-layer-left">
+            <div class="geo-layer-label">LAYER 1</div>
+            <div class="geo-layer-resolution">County</div>
+          </div>
+          <div class="geo-layer-right">
+            <div class="geo-layer-content">
+              <div class="geo-layer-title">Administrative County</div>
+              <div class="geo-layer-detail">Farmer selects or confirms one of Kenya's 47 counties via WhatsApp/USSD menu. Used only as a starting boundary — never as the final resolution for crop advice.</div>
+            </div>
+            <div class="geo-layer-badge">~13,000 km²</div>
+          </div>
+        </div>
+        <div class="geo-layer-connector"></div>
+
+        <!-- Layer 2: Sub-County -->
+        <div class="geo-layer">
+          <div class="geo-layer-left">
+            <div class="geo-layer-label">LAYER 2</div>
+            <div class="geo-layer-resolution">Sub-County</div>
+          </div>
+          <div class="geo-layer-right">
+            <div class="geo-layer-content">
+              <div class="geo-layer-title">Sub-County Selection</div>
+              <div class="geo-layer-detail">System presents a short list of sub-counties within the selected county. Farmer picks theirs — or types a well-known town/centre nearby for automatic matching.</div>
+            </div>
+            <div class="geo-layer-badge">~800–2,500 km²</div>
+          </div>
+        </div>
+        <div class="geo-layer-connector"></div>
+
+        <!-- Layer 3: Ward -->
+        <div class="geo-layer">
+          <div class="geo-layer-left">
+            <div class="geo-layer-label">LAYER 3</div>
+            <div class="geo-layer-resolution">Ward</div>
+          </div>
+          <div class="geo-layer-right">
+            <div class="geo-layer-content">
+              <div class="geo-layer-title">Electoral Ward Resolution</div>
+              <div class="geo-layer-detail">Kenya has 1,450 wards with defined boundaries. The system resolves the farmer to a specific ward using their typed nearest centre or GPS. This level drives most soil/AEZ pre-filtering.</div>
+            </div>
+            <div class="geo-layer-badge">~50–300 km²</div>
+          </div>
+        </div>
+        <div class="geo-layer-connector"></div>
+
+        <!-- Layer 4: GPS Coordinates -->
+        <div class="geo-layer">
+          <div class="geo-layer-left">
+            <div class="geo-layer-label">LAYER 4</div>
+            <div class="geo-layer-resolution">GPS Point</div>
+          </div>
+          <div class="geo-layer-right">
+            <div class="geo-layer-content">
+              <div class="geo-layer-title">Farmer's Exact GPS Coordinates</div>
+              <div class="geo-layer-detail">Farmers with smartphones can share their live location via WhatsApp (or a USSD callback that reads device GPS). Feature phones fall back to ward-centroid with a ±500m tolerance flag on the advisory.</div>
+            </div>
+            <div class="geo-layer-badge">±10m accuracy</div>
+          </div>
+        </div>
+        <div class="geo-layer-connector"></div>
+
+        <!-- Layer 5: Micro AEZ -->
+        <div class="geo-layer">
+          <div class="geo-layer-left">
+            <div class="geo-layer-label">LAYER 5</div>
+            <div class="geo-layer-resolution">Micro-AEZ Cell</div>
+          </div>
+          <div class="geo-layer-right">
+            <div class="geo-layer-content">
+              <div class="geo-layer-title">Agro-Ecological Zone Grid Lookup</div>
+              <div class="geo-layer-detail">GPS coordinates are snapped to Kenya's FAO GAEZ micro-AEZ raster (1km resolution) and iSDAsoil's 30m soil grid. Altitude, slope, and aspect are extracted from a 30m DEM (SRTM). This determines which sub-AEZ the plot belongs to — even within a single ward, plots on a north-facing slope vs a valley bottom get different recommendations.</div>
+            </div>
+            <div class="geo-layer-badge">1 km → 30m grid</div>
+          </div>
+        </div>
+        <div class="geo-layer-connector"></div>
+
+        <!-- Layer 6: Plot Profile -->
+        <div class="geo-layer">
+          <div class="geo-layer-left">
+            <div class="geo-layer-label">LAYER 6</div>
+            <div class="geo-layer-resolution">Plot Profile</div>
+          </div>
+          <div class="geo-layer-right">
+            <div class="geo-layer-content">
+              <div class="geo-layer-title">Full Plot Intelligence Package</div>
+              <div class="geo-layer-detail">Final resolved data bundle: altitude band, slope %, aspect (N/S/E/W), AEZ sub-zone, soil pH + NPK + texture + depth, 3-year NDVI trend, drainage class, and mean annual rainfall for that exact cell. This bundle is what feeds the crop suitability model.</div>
+            </div>
+            <div class="geo-layer-badge">The ML Input</div>
+          </div>
+        </div>
+
+      </div><!-- end geo-layers -->
+
+      <!-- Micro data cards -->
+      <div class="geo-micro-grid">
+        <div class="geo-micro-card">
+          <div class="geo-micro-title">🏔️ Altitude Banding</div>
+          <div class="geo-micro-desc">Crops are modelled by altitude band (e.g. 0–900m, 900–1500m, 1500–2100m, 2100m+). Even a 200m elevation difference within a ward can shift from maize country to Irish potato territory.</div>
+        </div>
+        <div class="geo-micro-card">
+          <div class="geo-micro-title">🧭 Aspect & Slope Analysis</div>
+          <div class="geo-micro-desc">A north-facing slope in Kenya receives less direct sunlight and retains moisture longer — favouring different crops than a south-facing slope at the same altitude. Extracted from SRTM 30m DEM via GDAL.</div>
+        </div>
+        <div class="geo-micro-card">
+          <div class="geo-micro-title">🌿 NDVI History</div>
+          <div class="geo-micro-desc">3-year Sentinel-2 NDVI time-series for the 30m cell reveals historical productivity, seasonal vegetation stress, and water availability patterns — helping identify consistently high or low-yield plots.</div>
+        </div>
+        <div class="geo-micro-card">
+          <div class="geo-micro-title">💧 Drainage Class</div>
+          <div class="geo-micro-desc">Waterlogging risk is inferred from soil texture, slope, and historical rainfall. A flat clay-heavy plot at the base of a hill gets flood-tolerant crop recommendations and drainage management guidance.</div>
+        </div>
+        <div class="geo-micro-card">
+          <div class="geo-micro-title">📡 Nearest Weather Station</div>
+          <div class="geo-micro-desc">Farmer's GPS is matched to the nearest active KMD station using Haversine distance. Removes county-averaging bias — a farmer in Maragua gets Maragua station data, not a Murang'a county average.</div>
+        </div>
+        <div class="geo-micro-card">
+          <div class="geo-micro-title">🗺️ Ward-Level Crop History</div>
+          <div class="geo-micro-desc">Historical yield data aggregated per ward from Ministry of Agriculture reports is used to calibrate the expected yield range for each crop — ground-truthing satellite and model estimates against real outcomes.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- PIPELINE                                                -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="section-title">Agent Workflow Pipeline</div>
+  <div class="section-sub">// 6-phase real-time data → decision chain (field farmers)</div>
+
+  <div class="pipeline">
+
+    <!-- Phase 1 -->
+    <div class="phase">
+      <div class="phase-label">
+        <div class="phase-num">PHASE 01</div>
+        <div class="phase-name">Data Ingestion</div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-cards">
+          <div class="pc">
+            <div class="pc-label green">Farmer Location</div>
+            <div class="pc-title">GPS + Ward Drill-Down</div>
+            <div class="pc-detail">Smartphone users share live GPS; feature phone users select sub-county + ward + nearest centre. Location is resolved to a 30m micro-AEZ cell via PostGIS spatial join.</div>
+            <div class="pc-tags"><span class="tag">WhatsApp GPS</span><span class="tag">USSD</span><span class="tag">PostGIS</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label blue">Weather API</div>
+            <div class="pc-title">Station-Matched Met Data</div>
+            <div class="pc-detail">Pulls rainfall, temperature, humidity, wind speed from the nearest KMD weather station to the farmer's GPS. Updated every 6 hours. Falls back to interpolated ERA5 grid if no station within 20km.</div>
+            <div class="pc-tags"><span class="tag">REST API</span><span class="tag">Haversine Match</span><span class="tag">ERA5</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label amber">Soil Database</div>
+            <div class="pc-title">iSDAsoil 30m + DEM</div>
+            <div class="pc-detail">Soil pH, NPK, texture, depth, and drainage class extracted for exact GPS cell. Altitude, slope, and aspect from SRTM 30m DEM via GDAL. Optional SMS soil test upload from farmer.</div>
+            <div class="pc-tags"><span class="tag">GeoTIFF</span><span class="tag">GDAL</span><span class="tag">SRTM DEM</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label amber">Market Data</div>
+            <div class="pc-title">AMIS + KNBS + Nearest Market</div>
+            <div class="pc-detail">Weekly commodity prices from 47 county markets. Prices are weighted by distance to the farmer's nearest accessible market — not just the county average.</div>
+            <div class="pc-tags"><span class="tag">CSV Feed</span><span class="tag">Web Scraper</span><span class="tag">Haversine</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label red">Pest Alerts</div>
+            <div class="pc-title">CABI + FAO EMPRES + KEPHIS</div>
+            <div class="pc-detail">Real-time alerts on Fall Armyworm, Desert Locust, Fusarium, Coffee Berry Borer. Geofiltered to alerts within 80km of farmer's location.</div>
+            <div class="pc-tags"><span class="tag">RSS</span><span class="tag">API</span><span class="tag">Geo-filter</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phase-connector"></div>
+
+    <!-- Phase 2 -->
+    <div class="phase">
+      <div class="phase-label">
+        <div class="phase-num">PHASE 02</div>
+        <div class="phase-name">Preprocessing</div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-cards">
+          <div class="pc">
+            <div class="pc-label green">Micro-AEZ Resolution</div>
+            <div class="pc-title">GPS → 30m Plot Profile</div>
+            <div class="pc-detail">PostGIS spatial join maps GPS coordinates to: AEZ sub-zone, altitude band, slope class, aspect quadrant, drainage class, 3-year NDVI mean, and nearest KMD station. Output is a rich plot profile object.</div>
+            <div class="pc-tags"><span class="tag">PostGIS</span><span class="tag">GeoPandas</span><span class="tag">GDAL</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label blue">Data Normalization</div>
+            <div class="pc-title">Clean, Merge, Fill Gaps</div>
+            <div class="pc-detail">Handle missing soil reports via spatial interpolation from neighbouring 30m cells. Normalize price series for seasonal patterns. Flag data confidence scores.</div>
+            <div class="pc-tags"><span class="tag">Pandas</span><span class="tag">scikit-learn</span><span class="tag">Kriging</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label amber">Feature Engineering</div>
+            <div class="pc-title">GDD, NDVI, SPI + Micro Derivations</div>
+            <div class="pc-detail">Growing Degree Days, Standardised Precipitation Index, NDVI crop stress index. Additionally: heat accumulation curve per altitude, frost risk score for plots above 2,200m, irrigation need index.</div>
+            <div class="pc-tags"><span class="tag">NumPy</span><span class="tag">Sentinel-2</span><span class="tag">ERA5</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phase-connector"></div>
+
+    <!-- Phase 3 -->
+    <div class="phase">
+      <div class="phase-label">
+        <div class="phase-num">PHASE 03</div>
+        <div class="phase-name">ML Models</div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-cards">
+          <div class="pc">
+            <div class="pc-label green">Crop Suitability</div>
+            <div class="pc-title">Hyper-Local Classifier</div>
+            <div class="pc-detail">XGBoost/Random Forest now trained with altitude band, slope, aspect, AEZ sub-zone, drainage class, and ward-level yield history as primary features — not just county. Outputs top-5 crops with plot-specific confidence.</div>
+            <div class="pc-tags"><span class="tag">XGBoost</span><span class="tag">scikit-learn</span><span class="tag">ONNX</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label amber">Price Forecasting</div>
+            <div class="pc-title">Market-Distance Adjusted</div>
+            <div class="pc-detail">Predicts harvest price per crop, now weighted by distance to farmer's nearest market. A farmer 40km from the nearest bean market gets a transport-cost-adjusted price estimate.</div>
+            <div class="pc-tags"><span class="tag">Prophet</span><span class="tag">LSTM</span><span class="tag">MLflow</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label red">Pest Risk Scoring</div>
+            <div class="pc-title">Geo-Filtered Pest Model</div>
+            <div class="pc-detail">Uses micro-AEZ temperature + humidity + altitude + nearby outbreak records (within 80km) to score pest outbreak probability at the plot level. Different valleys, different risk profiles.</div>
+            <div class="pc-tags"><span class="tag">Logistic Reg</span><span class="tag">RF</span><span class="tag">Geo-filter</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label orange">ROI Calculator</div>
+            <div class="pc-title">Net Profit Per Plot</div>
+            <div class="pc-detail">Predicted price × plot-specific expected yield (from micro-AEZ and altitude) − input costs − estimated transport cost to nearest market → net profit ranking per crop.</div>
+            <div class="pc-tags"><span class="tag">Rule Engine</span><span class="tag">NumPy</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phase-connector"></div>
+
+    <!-- Phase 4 -->
+    <div class="phase">
+      <div class="phase-label">
+        <div class="phase-num">PHASE 04</div>
+        <div class="phase-name">Advisory Engine</div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-cards">
+          <div class="pc">
+            <div class="pc-label green">LLM Reasoning Layer</div>
+            <div class="pc-title">Claude / GPT-4o Integration</div>
+            <div class="pc-detail">Takes micro-AEZ plot profile + all ML outputs as structured context. Generates a plot-specific recommendation explaining why this exact location suits or doesn't suit each crop. Reasoning includes altitude, soil, slope context.</div>
+            <div class="pc-tags"><span class="tag">RAG</span><span class="tag">Claude API</span><span class="tag">Prompt Eng.</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label red">Pesticide Recommender</div>
+            <div class="pc-title">PCPB Kenya Database</div>
+            <div class="pc-detail">References PCPB-approved chemicals. Recommends safe, available, cost-effective options with dosage & timing — adjusted for micro-climate humidity and temperature (affects application timing).</div>
+            <div class="pc-tags"><span class="tag">Vector DB</span><span class="tag">ChromaDB</span><span class="tag">RAG</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label blue">Context Personalization</div>
+            <div class="pc-title">Farmer Profile Memory</div>
+            <div class="pc-detail">Stores farm size, plot GPS history, past crop outcomes, budget, preferred crops, and distance to market. Each new query refines recommendations using historical performance at that exact location.</div>
+            <div class="pc-tags"><span class="tag">PostgreSQL</span><span class="tag">Redis Cache</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phase-connector"></div>
+
+    <!-- Phase 5 -->
+    <div class="phase">
+      <div class="phase-label">
+        <div class="phase-num">PHASE 05</div>
+        <div class="phase-name">Output Delivery</div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-cards">
+          <div class="pc">
+            <div class="pc-label blue">WhatsApp / SMS Bot</div>
+            <div class="pc-title">Twilio + Africa's Talking</div>
+            <div class="pc-detail">Farmers query via WhatsApp (GPS share supported) or USSD *384# (feature phones). Responses in English and Swahili. Voice output for low-literacy users. Advisory clearly states the specific zone it was generated for.</div>
+            <div class="pc-tags"><span class="tag">Twilio API</span><span class="tag">Africa's Talking</span><span class="tag">TTS</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label green">Web Dashboard</div>
+            <div class="pc-title">React + Ward-Level Maps</div>
+            <div class="pc-detail">Extension officers see a ward-level crop suitability heat map showing which crops are recommended across every ward in their county — replacing blanket county-level advice with granular, actionable intelligence.</div>
+            <div class="pc-tags"><span class="tag">React</span><span class="tag">MapTiler</span><span class="tag">Leaflet</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label orange">Push Alerts</div>
+            <div class="pc-title">Proactive Geo-Targeted Alerts</div>
+            <div class="pc-detail">Alerts are sent only to farmers whose GPS plots fall within the affected radius — not all farmers in a county. Rain alert, pest outbreak nearby, optimal planting window for your plot's altitude and soil.</div>
+            <div class="pc-tags"><span class="tag">Celery</span><span class="tag">Redis</span><span class="tag">FCM</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phase-connector"></div>
+
+    <!-- Phase 6 -->
+    <div class="phase">
+      <div class="phase-label">
+        <div class="phase-num">PHASE 06</div>
+        <div class="phase-name">Feedback & Learning</div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-cards">
+          <div class="pc">
+            <div class="pc-label green">Outcome Tracking</div>
+            <div class="pc-title">Plot-Level Harvest Reports</div>
+            <div class="pc-detail">Farmers report actual yield and price received — linked to their saved GPS plot. These are fed back to retrain suitability models at ward and micro-AEZ level quarterly, progressively sharpening hyper-local accuracy.</div>
+            <div class="pc-tags"><span class="tag">MLflow</span><span class="tag">Feedback Loop</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label amber">Model Retraining</div>
+            <div class="pc-title">Automated CI/CD ML Pipeline</div>
+            <div class="pc-detail">Weekly price model updates. Quarterly crop model retraining with new ward-level outcomes. A/B testing of model versions before deployment. Geo-stratified cross-validation to avoid county-level overfitting.</div>
+            <div class="pc-tags"><span class="tag">Airflow</span><span class="tag">DVC</span><span class="tag">GitHub Actions</span></div>
+          </div>
+          <div class="pc">
+            <div class="pc-label red">Anomaly Monitoring</div>
+            <div class="pc-title">Model Drift Detection</div>
+            <div class="pc-detail">Monitors prediction accuracy decay per AEZ zone, data pipeline failures, and API uptime. Alerts when a specific ward's prediction accuracy drops below threshold — triggering targeted data refresh.</div>
+            <div class="pc-tags"><span class="tag">Evidently AI</span><span class="tag">Prometheus</span><span class="tag">Grafana</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end pipeline -->
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- GREENHOUSE INTELLIGENCE PATHWAY                         -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="greenhouse-section">
+    <div class="section-title">Greenhouse Intelligence Pathway</div>
+    <div class="section-sub">// a separate, parallel advisory track for controlled-environment farmers</div>
+
+    <div class="callout gh-callout">
+      <strong>Design rationale</strong>
+      Greenhouse farmers operate in partially or fully controlled environments. Ambient weather — rainfall, wind, outdoor temperature — is significantly decoupled from their growing conditions. Routing them through the standard field-farmer pipeline would generate misleading advice: recommending drought-tolerant crops because outdoor rainfall is low, or warning about pest outbreaks driven by wind patterns that can't penetrate a polyhouse. This pathway replaces weather as the primary input with internal environment parameters and focuses advisory energy on the variables that actually determine greenhouse outcomes.
+    </div>
+
+    <div class="gh-header">
+      <div class="gh-header-title">🏠 What Changes for Greenhouse Farmers</div>
+      <div class="gh-header-desc">
+        The greenhouse pathway uses the same location resolution engine (GPS → ward → micro-AEZ) to establish soil context and nearest market — but weather data shifts from primary driver to a secondary risk signal (extreme heat waves, frost risk, hailstorm risk that could damage structure). The core model stack is rebuilt around controlled-environment variables: internal temperature and humidity management, irrigation scheduling, growing medium, crop cycles per year, and disease vectors that thrive in enclosed humid environments.
+      </div>
+    </div>
+
+    <div class="gh-grid">
+
+      <div class="gh-card">
+        <div class="gh-card-icon">🌡️</div>
+        <div class="gh-card-title">Module 01 — Environment</div>
+        <div class="gh-card-name">Internal Climate Intelligence</div>
+        <div class="gh-card-desc">Replaces outdoor weather as the primary input. Focuses on internal temperature and humidity management — the biggest levers for greenhouse yield and disease.</div>
+        <div class="gh-card-features">
+          <div class="gh-feat"><div class="gh-dot"></div>Optimal internal temperature bands per crop (day/night differential)</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Humidity management schedule — ventilation timing, shade net recommendations</div>
+          <div class="gh-feat"><div class="gh-dot"></div>External weather used only for structural risk (hail, frost warning if temp drops below 5°C)</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Integrated with optional IoT sensor inputs (temp, humidity, CO₂ sensors)</div>
+        </div>
+      </div>
+
+      <div class="gh-card">
+        <div class="gh-card-icon">💧</div>
+        <div class="gh-card-title">Module 02 — Irrigation</div>
+        <div class="gh-card-name">Precision Irrigation Scheduler</div>
+        <div class="gh-card-desc">Outdoor rainfall is irrelevant. Irrigation scheduling is driven entirely by crop water demand, growing medium, and growth stage — not the sky.</div>
+        <div class="gh-card-features">
+          <div class="gh-feat"><div class="gh-dot"></div>Drip irrigation schedule per crop × growth stage (germination, vegetative, flowering, fruiting)</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Growing medium consideration: soil, hydroponics, coco coir, peat — different water retention</div>
+          <div class="gh-feat"><div class="gh-dot"></div>ET₀ (evapotranspiration) estimation from internal temp + crop type, not rainfall</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Water quality advisory — EC and pH target ranges for irrigation water per crop</div>
+        </div>
+      </div>
+
+      <div class="gh-card">
+        <div class="gh-card-icon">🧪</div>
+        <div class="gh-card-title">Module 03 — Nutrition</div>
+        <div class="gh-card-name">Fertigation & Nutrition Planner</div>
+        <div class="gh-card-desc">Greenhouse crops can be intensively managed. The system provides a full fertigation schedule — what nutrients, in what ratios, at each growth stage.</div>
+        <div class="gh-card-features">
+          <div class="gh-feat"><div class="gh-dot"></div>Macro and micro-nutrient schedule (N-P-K-Ca-Mg-S + trace elements) per crop type</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Adjusted for growing medium — hydroponic systems need full nutrient solutions</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Nutrient deficiency identification via symptom description (visual checklist in chatbot)</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Locally available fertilizer recommendations (KEPHIS-registered products only)</div>
+        </div>
+      </div>
+
+      <div class="gh-card">
+        <div class="gh-card-icon">🦟</div>
+        <div class="gh-card-title">Module 04 — Pest & Disease</div>
+        <div class="gh-card-name">Enclosed Environment Pathogen Advisor</div>
+        <div class="gh-card-desc">Greenhouse pest/disease profiles differ fundamentally from field farming. Whitefly, spider mite, botrytis, and powdery mildew thrive in enclosed humid environments — not Desert Locust.</div>
+        <div class="gh-card-features">
+          <div class="gh-feat"><div class="gh-dot"></div>Separate pest/disease library for greenhouse crops (tomato, capsicum, cucumber, French beans)</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Risk scoring based on internal humidity × temperature — peak botrytis risk flagged</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Biological control recommendations (predatory mites, beneficial insects) alongside chemicals</div>
+          <div class="gh-feat"><div class="gh-dot"></div>PCPB-approved chemicals that are safe for enclosed application (phytotoxicity risk flags)</div>
+        </div>
+      </div>
+
+      <div class="gh-card">
+        <div class="gh-card-icon">📦</div>
+        <div class="gh-card-title">Module 05 — Crop Selection & ROI</div>
+        <div class="gh-card-name">Greenhouse Crop Profitability Ranker</div>
+        <div class="gh-card-desc">Greenhouse crop choice is driven by yield per square metre, cycles per year, and market price — not by outdoor AEZ. The model optimises for indoor intensity.</div>
+        <div class="gh-card-features">
+          <div class="gh-feat"><div class="gh-dot"></div>Crop list tailored to greenhouse production: tomatoes, capsicum, cucumber, French beans, herbs, strawberries, baby corn</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Yield per m² × cycles per year × harvest price = annual revenue model</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Greenhouse size input (small: <200m², medium: 200–500m², large: 500m²+) for scaled ROI</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Market distance and export potential considered (French beans for export vs. local tomatoes)</div>
+        </div>
+      </div>
+
+      <div class="gh-card">
+        <div class="gh-card-icon">📅</div>
+        <div class="gh-card-title">Module 06 — Production Calendar</div>
+        <div class="gh-card-name">Year-Round Planting Scheduler</div>
+        <div class="gh-card-desc">Unlike field farmers who are bound by rain seasons, greenhouse farmers can plant year-round. The system builds an optimised annual production calendar for maximum revenue.</div>
+        <div class="gh-card-features">
+          <div class="gh-feat"><div class="gh-dot"></div>Cycle planning: staggered planting schedules to ensure continuous harvest and cash flow</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Price seasonality awareness — schedule harvests to hit market price peaks (e.g. tomato peaks in dry season)</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Crop rotation within greenhouse to prevent soil-borne disease build-up</div>
+          <div class="gh-feat"><div class="gh-dot"></div>Task calendar: weekly and monthly reminders for pruning, spraying, harvesting, fertigation</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- DUAL ADVISORY FLOWS                                      -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="advisory-section">
+    <div class="section-title">Farmer Advisory Decision Flows</div>
+    <div class="section-sub">// two parallel paths from query to recommendation</div>
+
+    <div class="advisory-tabs">
+      <div class="advisory-tab field">🌾 Field Farmer Flow</div>
+      <div class="advisory-tab gh">🏠 Greenhouse Farmer Flow</div>
+    </div>
+
+    <!-- Field Farmer Flow -->
+    <div class="advisory-flow">
+      <div class="advisory-flow-label field">// Field Farmer — Hyper-Local Precision Path</div>
+      <div class="af-row">
+        <div class="af-box"><strong>Input</strong>Farmer sends location via WhatsApp GPS share or USSD</div>
+        <div class="af-arrow">→</div>
+        <div class="af-box"><strong>Precision Geo</strong>GPS → Ward → Micro-AEZ cell → 30m plot profile assembled</div>
+        <div class="af-arrow">→</div>
+        <div class="af-box"><strong>Nearest Station</strong>Haversine match to closest KMD weather station (not county average)</div>
+      </div>
+      <div class="af-row">
+        <div class="af-box"><strong>ML Layer</strong>Crop suitability model runs with altitude, slope, aspect, AEZ sub-zone, NDVI history</div>
+        <div class="af-arrow">→</div>
+        <div class="af-box"><strong>Price Model</strong>Harvest price forecast adjusted for distance to farmer's nearest market</div>
+        <div class="af-arrow">→</div>
+        <div class="af-box"><strong>ROI Rank</strong>Net profit per crop after transport cost calculated and ranked</div>
+      </div>
+      <div class="af-row">
+        <div class="af-box"><strong>Pest Check</strong>Pest risk scored using micro-AEZ climate + nearby outbreak records within 80km radius</div>
+        <div class="af-arrow">→</div>
+        <div class="af-box"><strong>LLM Synthesis</strong>Claude receives full plot profile + ML outputs → generates place-specific advisory</div>
+        <div class="af-arrow">→</div>
+        <div class="af-result">
+          <strong>🌿 Plot-Specific Advisory Delivered</strong>
+          <span>Crop recommendation citing your exact altitude, soil, and AEZ zone + planting calendar + pesticide plan + net income estimate — in under 8 seconds</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Greenhouse Farmer Flow -->
+    <div class="advisory-flow greenhouse-flow">
+      <div class="advisory-flow-label gh">// Greenhouse Farmer — Controlled Environment Path</div>
+      <div class="af-row">
+        <div class="af-box gh-box"><strong>Input</strong>Farmer identifies as greenhouse user + shares location + greenhouse size</div>
+        <div class="af-arrow gh">→</div>
+        <div class="af-box gh-box"><strong>Geo (Market Only)</strong>GPS used to identify nearest market and export routes — not for soil or weather</div>
+        <div class="af-arrow gh">→</div>
+        <div class="af-box gh-box"><strong>Profile</strong>Greenhouse type (plastic, glass, net), size, irrigation system, current crop entered</div>
+      </div>
+      <div class="af-row">
+        <div class="af-box gh-box"><strong>Crop ROI Model</strong>Ranks crops by yield/m² × cycles/year × market price − input costs for this greenhouse size</div>
+        <div class="af-arrow gh">→</div>
+        <div class="af-box gh-box"><strong>Pest/Disease Check</strong>Internal humidity + temp → botrytis, whitefly, spider mite risk scored for enclosed environment</div>
+        <div class="af-arrow gh">→</div>
+        <div class="af-box gh-box"><strong>Weather Risk Flag</strong>Outdoor weather checked only for structural risk (frost, hailstorm, extreme heat stress)</div>
+      </div>
+      <div class="af-row">
+        <div class="af-box gh-box"><strong>Nutrition + Irrigation</strong>Fertigation schedule + drip irrigation calendar generated for crop × growth stage</div>
+        <div class="af-arrow gh">→</div>
+        <div class="af-box gh-box"><strong>LLM Synthesis</strong>Claude receives greenhouse profile + all module outputs → generates indoor-specific advisory</div>
+        <div class="af-arrow gh">→</div>
+        <div class="af-result gh-result">
+          <strong>🏠 Greenhouse Advisory Delivered</strong>
+          <span>Best crop for your greenhouse size + annual production calendar + fertigation schedule + pest management plan + projected annual revenue</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- ML MODELS DEEP DIVE                                     -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="ml-section">
+    <div class="section-title">ML Models — Deep Dive</div>
+    <div class="section-sub">// architecture, training details, and greenhouse additions</div>
+
+    <div class="ml-grid">
+      <div class="ml-card" data-model="01">
+        <div class="ml-card-title">Model 01 — Suitability</div>
+        <div class="ml-card-name">Hyper-Local Crop Classifier</div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Algorithm:</strong> XGBoost Multiclass + Random Forest Ensemble for 30+ Kenyan crops, trained with ward-level stratification</span></div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Training data:</strong> KARI agronomic trials (1980–2024), Ministry of Agriculture ward yield reports, FAO GAEZ Kenya, farmer survey data</span></div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Output:</strong> Top-5 ranked crops with confidence %, yield estimate per acre (altitude-adjusted), water need, and micro-AEZ suitability score</span></div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Update cycle:</strong> Retrained each season with new farmer outcome data, geo-stratified cross-validation to prevent county-level overfitting</span></div>
+        <div class="ml-inputs">
+          <div class="ml-inputs-title">Input Features (Hyper-Local)</div>
+          <div class="chip-row">
+            <span class="chip">Altitude Band (m)</span>
+            <span class="chip">Slope %</span>
+            <span class="chip">Aspect</span>
+            <span class="chip">Drainage Class</span>
+            <span class="chip">AEZ Sub-Zone</span>
+            <span class="chip">Soil pH</span>
+            <span class="chip">NPK Ratio</span>
+            <span class="chip">Soil Texture</span>
+            <span class="chip">3yr NDVI Mean</span>
+            <span class="chip">Ward Yield History</span>
+            <span class="chip">Rainfall (nearest station)</span>
+            <span class="chip">Temp Min/Max</span>
+            <span class="chip">Season</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ml-card" data-model="02">
+        <div class="ml-card-title">Model 02 — Pricing</div>
+        <div class="ml-card-name">Market-Distance Adjusted Forecaster</div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Algorithm:</strong> Facebook Prophet for seasonality + LSTM for non-linear trend capture. Market-distance weighting applied post-model.</span></div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Training data:</strong> KNBS 10-year county market prices, AMIS East Africa commodity data, transport cost matrix per county</span></div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Output:</strong> Farm-gate price estimate = market price − transport cost(distance to farmer's nearest market). Confidence bands at 30/60/90/120-day horizons.</span></div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Update cycle:</strong> Weekly re-fit with latest market prices; transport cost matrix updated monthly</span></div>
+        <div class="ml-inputs">
+          <div class="ml-inputs-title">Input Features</div>
+          <div class="chip-row">
+            <span class="chip">Historical Prices</span>
+            <span class="chip">Planting Season</span>
+            <span class="chip">Nearest Market (km)</span>
+            <span class="chip">Rainfall Forecast</span>
+            <span class="chip">County Supply</span>
+            <span class="chip">Import/Export Data</span>
+            <span class="chip">Inflation CPI</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ml-card" data-model="03">
+        <div class="ml-card-title">Model 03 — Pest Risk</div>
+        <div class="ml-card-name">Geo-Filtered Pest Probability Scorer</div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Algorithm:</strong> Logistic Regression + Random Forest per pest species; separate model library for field vs greenhouse environments</span></div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Training data:</strong> CABI historical outbreak records, KEPHIS surveillance data, EMPRES-i geo-tagged alerts</span></div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Output:</strong> Risk score 0–100 per pest per crop; field model uses outdoor climate + nearby outbreaks within 80km; greenhouse model uses internal humidity + temperature</span></div>
+        <div class="ml-inputs">
+          <div class="ml-inputs-title">Field Pest Features</div>
+          <div class="chip-row">
+            <span class="chip">Temperature</span>
+            <span class="chip">Humidity %</span>
+            <span class="chip">Wind Direction</span>
+            <span class="chip">AEZ Zone</span>
+            <span class="chip">Nearby Outbreaks (80km)</span>
+            <span class="chip">Rainfall Anomaly</span>
+          </div>
+          <div class="ml-inputs-title" style="margin-top:12px;">Greenhouse Pest Features</div>
+          <div class="chip-row">
+            <span class="chip teal">Internal Humidity</span>
+            <span class="chip teal">Internal Temp</span>
+            <span class="chip teal">Ventilation Frequency</span>
+            <span class="chip teal">Crop Density</span>
+            <span class="chip teal">Days Since Last Spray</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ml-card" data-model="04">
+        <div class="ml-card-title">Model 04 — Advisory</div>
+        <div class="ml-card-name">Dual-Mode LLM Recommendation Engine</div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Approach:</strong> RAG pipeline feeding ML outputs into Claude as structured context + Kenya-specific knowledge base. Two system prompt modes: Field and Greenhouse.</span></div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Knowledge Base:</strong> PCPB pesticide registry, KARI crop guides, Ministry of Agriculture extension notes, greenhouse production manuals for Kenya</span></div>
+        <div class="ml-feature"><div class="ml-dot"></div><span><strong>Field output:</strong> Crop choice citing specific altitude/soil/AEZ context + planting calendar + pesticide plan + expected income</span></div>
+        <div class="ml-feature"><div class="ml-dot teal"></div><span><strong>Greenhouse output:</strong> Best crop for greenhouse size + annual production calendar + fertigation schedule + pest/disease plan + revenue projection</span></div>
+        <div class="ml-inputs">
+          <div class="ml-inputs-title">Field System Prompt Context</div>
+          <div class="chip-row">
+            <span class="chip">Plot Profile</span>
+            <span class="chip">Altitude Band</span>
+            <span class="chip">Slope & Aspect</span>
+            <span class="chip">Crop Scores</span>
+            <span class="chip">Adj. Price Forecast</span>
+            <span class="chip">Pest Risk</span>
+            <span class="chip">Farmer Budget</span>
+          </div>
+          <div class="ml-inputs-title" style="margin-top:12px;">Greenhouse System Prompt Context</div>
+          <div class="chip-row">
+            <span class="chip teal">GH Size & Type</span>
+            <span class="chip teal">Irrigation System</span>
+            <span class="chip teal">Current Crop</span>
+            <span class="chip teal">Pest Risk (Internal)</span>
+            <span class="chip teal">Market Distance</span>
+            <span class="chip teal">Growing Medium</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- TECH STACK                                              -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="stack-section">
+    <div class="section-title">Technology Stack</div>
+    <div class="section-sub">// recommended tools for production deployment in Kenya</div>
+
+    <div class="stack-grid">
+      <div class="stack-cat">
+        <div class="stack-cat-title">⚙️ Backend & APIs</div>
+        <div class="stack-item"><span class="stack-item-name">FastAPI (Python)</span><span class="stack-item-role">Core API server</span></div>
+        <div class="stack-item"><span class="stack-item-name">Celery + Redis</span><span class="stack-item-role">Task queuing & caching</span></div>
+        <div class="stack-item"><span class="stack-item-name">Apache Airflow</span><span class="stack-item-role">Data pipeline orchestration</span></div>
+        <div class="stack-item"><span class="stack-item-name">PostgreSQL + PostGIS</span><span class="stack-item-role">Geo-aware spatial DB</span></div>
+        <div class="stack-item"><span class="stack-item-name">Africa's Talking</span><span class="stack-item-role">USSD + SMS in Kenya</span></div>
+      </div>
+
+      <div class="stack-cat">
+        <div class="stack-cat-title">🗺️ Geo & Precision Location</div>
+        <div class="stack-item"><span class="stack-item-name">PostGIS + GeoPandas</span><span class="stack-item-role">Spatial joins & micro-AEZ</span></div>
+        <div class="stack-item"><span class="stack-item-name">GDAL / Rasterio</span><span class="stack-item-role">DEM + GeoTIFF processing</span></div>
+        <div class="stack-item"><span class="stack-item-name">SRTM 30m DEM</span><span class="stack-item-role">Altitude, slope, aspect</span></div>
+        <div class="stack-item"><span class="stack-item-name">iSDAsoil Africa API</span><span class="stack-item-role">30m soil property grid</span></div>
+        <div class="stack-item"><span class="stack-item-name">Kenya Ward Shapefile</span><span class="stack-item-role">1,450 ward boundaries</span></div>
+      </div>
+
+      <div class="stack-cat">
+        <div class="stack-cat-title">🧠 ML & AI</div>
+        <div class="stack-item"><span class="stack-item-name">XGBoost / scikit-learn</span><span class="stack-item-role">Crop suitability model</span></div>
+        <div class="stack-item"><span class="stack-item-name">Prophet + LSTM (PyTorch)</span><span class="stack-item-role">Price forecasting</span></div>
+        <div class="stack-item"><span class="stack-item-name">Claude API</span><span class="stack-item-role">Field + GH advisory LLM</span></div>
+        <div class="stack-item"><span class="stack-item-name">ChromaDB</span><span class="stack-item-role">Vector DB for RAG</span></div>
+        <div class="stack-item"><span class="stack-item-name">MLflow</span><span class="stack-item-role">Model tracking & registry</span></div>
+      </div>
+
+      <div class="stack-cat">
+        <div class="stack-cat-title">🌍 Data Sources</div>
+        <div class="stack-item"><span class="stack-item-name">Kenya Met Dept API</span><span class="stack-item-role">Station-level weather</span></div>
+        <div class="stack-item"><span class="stack-item-name">AMIS + KNBS</span><span class="stack-item-role">Market price feeds</span></div>
+        <div class="stack-item"><span class="stack-item-name">CABI / FAO EMPRES-i</span><span class="stack-item-role">Geo-tagged pest alerts</span></div>
+        <div class="stack-item"><span class="stack-item-name">Sentinel-2 (ESA)</span><span class="stack-item-role">NDVI ward history</span></div>
+        <div class="stack-item"><span class="stack-item-name">MoA Ward Yield DB</span><span class="stack-item-role">Ward-level harvest data</span></div>
+      </div>
+
+      <div class="stack-cat greenhouse-stack">
+        <div class="stack-cat-title">🏠 Greenhouse-Specific</div>
+        <div class="stack-item"><span class="stack-item-name">MQTT Broker (Mosquitto)</span><span class="stack-item-role">IoT sensor ingestion</span></div>
+        <div class="stack-item"><span class="stack-item-name">Node-RED</span><span class="stack-item-role">Sensor flow automation</span></div>
+        <div class="stack-item"><span class="stack-item-name">Arduino / Raspberry Pi</span><span class="stack-item-role">Low-cost GH sensors</span></div>
+        <div class="stack-item"><span class="stack-item-name">ET₀ Calculator (FAO-56)</span><span class="stack-item-role">Crop water demand</span></div>
+        <div class="stack-item"><span class="stack-item-name">GH Production KB</span><span class="stack-item-role">RAG knowledge base</span></div>
+      </div>
+
+      <div class="stack-cat">
+        <div class="stack-cat-title">📱 Frontend & Delivery</div>
+        <div class="stack-item"><span class="stack-item-name">React + Vite</span><span class="stack-item-role">Web dashboard</span></div>
+        <div class="stack-item"><span class="stack-item-name">Leaflet + MapTiler</span><span class="stack-item-role">Ward-level crop maps</span></div>
+        <div class="stack-item"><span class="stack-item-name">Twilio WhatsApp API</span><span class="stack-item-role">Farmer chatbot + GPS</span></div>
+        <div class="stack-item"><span class="stack-item-name">Coqui TTS</span><span class="stack-item-role">Swahili voice output</span></div>
+        <div class="stack-item"><span class="stack-item-name">Firebase Cloud Msg</span><span class="stack-item-role">Geo-targeted alerts</span></div>
+      </div>
+
+      <div class="stack-cat">
+        <div class="stack-cat-title">☁️ Infrastructure</div>
+        <div class="stack-item"><span class="stack-item-name">AWS / Azure Africa</span><span class="stack-item-role">Cape Town region hosting</span></div>
+        <div class="stack-item"><span class="stack-item-name">Docker + Kubernetes</span><span class="stack-item-role">Container orchestration</span></div>
+        <div class="stack-item"><span class="stack-item-name">Cloudflare</span><span class="stack-item-role">CDN for low latency</span></div>
+        <div class="stack-item"><span class="stack-item-name">Prometheus + Grafana</span><span class="stack-item-role">Monitoring & alerting</span></div>
+        <div class="stack-item"><span class="stack-item-name">GitHub Actions</span><span class="stack-item-role">CI/CD ML pipeline</span></div>
+      </div>
+
+      <div class="stack-cat">
+        <div class="stack-cat-title">🔐 Compliance & Quality</div>
+        <div class="stack-item"><span class="stack-item-name">PCPB Kenya Registry</span><span class="stack-item-role">Approved pesticides only</span></div>
+        <div class="stack-item"><span class="stack-item-name">KEPHIS Standards</span><span class="stack-item-role">Crop quality compliance</span></div>
+        <div class="stack-item"><span class="stack-item-name">Evidently AI</span><span class="stack-item-role">ML drift detection</span></div>
+        <div class="stack-item"><span class="stack-item-name">DVC</span><span class="stack-item-role">Data version control</span></div>
+        <div class="stack-item"><span class="stack-item-name">Kenyan DPA 2019</span><span class="stack-item-role">Data privacy compliance</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- KPIs                                                    -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="kpi-section">
+    <div class="section-title">Target Performance Metrics</div>
+    <div class="section-sub">// what success looks like at scale</div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-value">&lt;8s</span>
+        <div class="kpi-label">Advisory Response Time</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">85%</span>
+        <div class="kpi-label">Field Crop Model Accuracy</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">±12%</span>
+        <div class="kpi-label">Price Forecast Error (MAPE)</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">1,450</span>
+        <div class="kpi-label">Kenya Wards Resolved</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">30m</span>
+        <div class="kpi-label">Soil & Geo Resolution</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">30+</span>
+        <div class="kpi-label">Field Crop Varieties</div>
+      </div>
+      <div class="kpi-card gh-kpi">
+        <span class="kpi-value">7</span>
+        <div class="kpi-label">Greenhouse Crop Types</div>
+      </div>
+      <div class="kpi-card gh-kpi">
+        <span class="kpi-value">6</span>
+        <div class="kpi-label">Greenhouse Advisory Modules</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">99.5%</span>
+        <div class="kpi-label">API Uptime SLA</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">6h</span>
+        <div class="kpi-label">Weather Data Refresh</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">2</span>
+        <div class="kpi-label">Languages (EN + SW)</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-value">80km</span>
+        <div class="kpi-label">Pest Alert Geo-Filter Radius</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>DATAFARM KENYA · AI AGRICULTURAL ADVISORY SYSTEM · WORKFLOW v2.0 · 2025 · PRECISION GPS + GREENHOUSE PATHWAY</footer>
+
+<footer>DATAFARM KENYA · AI AGRICULTURAL ADVISORY SYSTEM · v2.0 · 2025 · PRECISION GPS + GREENHOUSE PATHWAY · DATA SOURCES: OSM NOMINATIM · ISDASOIL · SRTM DEM · KMD</footer>
+
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<!-- FAB -->
+<button class="gps-fab" onclick="openGPS()">
+  <div class="fab-dot"></div>📍 Try Live GPS Demo
+</button>
+
+<!-- GPS Modal -->
+<div class="gps-overlay" id="gpsOv">
+  <div class="gps-modal">
+    <div class="gps-mhead">
+      <div class="gps-mhead-left">
+        <div class="gps-mhead-top">
+          <div class="gps-mtitle">📍 DataFarm Location Capture</div>
+          <div class="lang-toggle">
+            <button class="lang-btn lang-active" id="langEn" onclick="setLang('en')">EN</button>
+            <button class="lang-btn" id="langSw" onclick="setLang('sw')">SW</button>
+          </div>
+        </div>
+        <div class="gps-msub">// GPS → ward → micro-AEZ → plot profile</div>
+      </div>
+      <div class="gps-close" onclick="closeGPS()">✕</div>
+    </div>
+
+    <div class="gps-mbody">
+      <!-- Farm type -->
+      <div class="ftype-row">
+        <div class="ftype-btn active" id="fldBtn" onclick="setFarm('field')">
+          <div class="ftype-icon">🌾</div>
+          <div class="ftype-label" id="fldBtnLabel">Field Farm</div>
+        </div>
+        <div class="ftype-btn gh" id="ghBtn" onclick="setFarm('greenhouse')">
+          <div class="ftype-icon">🏠</div>
+          <div class="ftype-label" id="ghBtnLabel">Greenhouse</div>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="progress-steps" id="progressSteps">
+        <div class="progress-step" id="ps1"></div>
+        <div class="progress-step" id="ps2"></div>
+        <div class="progress-step" id="ps3"></div>
+        <div class="progress-step" id="ps4"></div>
+      </div>
+
+      <!-- GPS button -->
+      <button class="gps-btn" id="gpsCapBtn" onclick="captureGPS()">
+        <span id="gpsIco">📡</span>
+        <span id="gpsTxt">Capture My GPS Location</span>
+      </button>
+
+      <!-- Status -->
+      <div class="gps-status idle" id="gpsStat" data-key="waiting">Waiting for location signal...</div>
+
+      <!-- Retry -->
+      <button class="retry-btn" id="retryBtn" onclick="resetDemo()">↺ Reset & Try Again</button>
+
+      <!-- Manual entry -->
+      <div class="div-label" id="divLabel">or enter manually</div>
+      <div class="man-row">
+        <input class="man-inp" id="latI" type="number" step="0.00001" placeholder="Latitude (e.g. -0.7167)"/>
+        <input class="man-inp" id="lngI" type="number" step="0.00001" placeholder="Longitude (e.g. 37.1500)"/>
+      </div>
+      <button class="man-sub" id="manSubBtn" onclick="doManual()">→ Use These Coordinates</button>
+
+      <!-- Map -->
+      <div id="dfmap"></div>
+      <div class="map-error" id="mapError">🗺️ Map tiles unavailable — location data still captured above</div>
+
+      <!-- Plot profile -->
+      <div class="pprofile" id="pp">
+        <div class="pptitle" id="ppTitle">📍 Plot Profile Resolved</div>
+        <div class="ppgrid" id="ppGrid"></div>
+        <div class="pp-advisory" id="ppAdv"></div>
+        <div class="pp-section-title" id="ppCalTitle">📅 PLANTING CALENDAR</div>
+        <div class="cal-grid" id="ppCal"></div>
+        <div class="pp-section-title" id="ppMktTitle">🏪 NEAREST MARKETS</div>
+        <div class="markets-list" id="ppMarkets"></div>
+        <div class="pp-actions">
+          <button class="share-btn" id="shareBtn" onclick="shareProfile()">📤 Share via WhatsApp</button>
+          <button class="reset-btn" onclick="resetDemo()">↺ Reset & Start Over</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ── Language strings ──────────────────────────────────────────────────────────
+const LANG = {
+  en: {
+    fieldFarm:'Field Farm', greenhouse:'Greenhouse',
+    captureBtn:'Capture My GPS Location', scanning:'Scanning...', captured:'Location Captured!',
+    orManual:'or enter manually',
+    latPh:'Latitude (e.g. -0.7167)', lngPh:'Longitude (e.g. 37.1500)',
+    useCoords:'→ Use These Coordinates',
+    waiting:'Waiting for location signal...',
+    geoFailed:'⚠ Geocoding failed — check connection and try again.',
+    timeout:'⚠ Location lookup timed out. Try again.',
+    noGeo:'⚠ Geolocation not supported by this browser.',
+    denied:'⚠ Location access denied — use manual entry below.',
+    unavail:'⚠ GPS unavailable — use manual entry below.',
+    timedOut:'⚠ Request timed out — use manual entry below.',
+    notKenya:'⚠ Location appears to be outside Kenya. Check and retry.',
+    badCoords:'⚠ Enter valid latitude and longitude.',
+    outOfRange:'⚠ Coordinates appear outside Kenya. Check and retry.',
+    noCounty:'⚠ Could not resolve county. Check your connection.',
+    reversing:'⟳ Reverse geocoding via OpenStreetMap...',
+    building:'✓ Location resolved — building plot profile...',
+    complete:'✓ Profile complete',
+    retryBtn:'↺ Reset & Try Again',
+    shareBtn:'📤 Share via WhatsApp',
+    resetBtn:'↺ Reset & Start Over',
+    season1:'Long Rains (MAM)', season2:'Short Rains (OND)',
+    plant:'Plant', harvest:'Harvest', crops:'Crops',
+    estLabel:'EST', verLabel:'VERIFIED',
+    mktLabel:'NEAREST MARKETS', calLabel:'PLANTING CALENDAR',
+    noMarkets:'No market data for this county'
+  },
+  sw: {
+    fieldFarm:'Shamba la Nje', greenhouse:'Nyumba ya Kilimo',
+    captureBtn:'Pata Mahali Pangu (GPS)', scanning:'Inatafuta...', captured:'Mahali Pamepatikana!',
+    orManual:'au ingiza kwa mkono',
+    latPh:'Latitudo (mfano: -0.7167)', lngPh:'Longitudo (mfano: 37.1500)',
+    useCoords:'→ Tumia Kuratibu Hizi',
+    waiting:'Inasubiri ishara ya GPS...',
+    geoFailed:'⚠ Imeshindwa kupata mahali — angalia muunganisho.',
+    timeout:'⚠ Muda umekwisha. Jaribu tena.',
+    noGeo:'⚠ GPS haisaidiwi na kivinjari hiki.',
+    denied:'⚠ Ruhusa ya mahali imekatazwa — ingiza kwa mkono.',
+    unavail:'⚠ GPS haipatikani — ingiza kwa mkono.',
+    timedOut:'⚠ Ombi limeisha muda — ingiza kwa mkono.',
+    notKenya:'⚠ Mahali hapa haiko Kenya. Angalia tena.',
+    badCoords:'⚠ Ingiza latitudo na longitudo sahihi.',
+    outOfRange:'⚠ Kuratibu zinaonekana nje ya Kenya.',
+    noCounty:'⚠ Imeshindwa kupata kaunti. Angalia muunganisho.',
+    reversing:'⟳ Inatafuta anwani kupitia OpenStreetMap...',
+    building:'✓ Mahali pamepatikana — inajenga wasifu...',
+    complete:'✓ Wasifu umekamilika',
+    retryBtn:'↺ Anza Upya', shareBtn:'📤 Shiriki WhatsApp', resetBtn:'↺ Anza Upya',
+    season1:'Mvua Ndefu (MAM)', season2:'Mvua Fupi (OND)',
+    plant:'Panda', harvest:'Vuna', crops:'Mazao',
+    estLabel:'MAKADIRIO', verLabel:'IMETHIBITISHWA',
+    mktLabel:'MASOKO YA KARIBU', calLabel:'KALENDA YA KUPANDA',
+    noMarkets:'Hakuna data ya masoko kwa kaunti hii'
+  }
+};
+let lang = 'en';
+function t(k){ return (LANG[lang]||{})[k] || LANG.en[k] || k; }
+
+function setLang(l){
+  lang = l;
+  document.getElementById('langEn').classList.toggle('lang-active', l==='en');
+  document.getElementById('langSw').classList.toggle('lang-active', l==='sw');
+  // Update all translatable UI elements
+  document.getElementById('fldBtnLabel').textContent = t('fieldFarm');
+  document.getElementById('ghBtnLabel').textContent  = t('greenhouse');
+  document.getElementById('gpsTxt').textContent      = t('captureBtn');
+  document.getElementById('divLabel').textContent    = t('orManual');
+  document.getElementById('latI').placeholder        = t('latPh');
+  document.getElementById('lngI').placeholder        = t('lngPh');
+  document.getElementById('manSubBtn').textContent   = t('useCoords');
+  document.getElementById('retryBtn').textContent    = t('retryBtn');
+  document.getElementById('shareBtn').textContent    = t('shareBtn');
+  const stat = document.getElementById('gpsStat');
+  if (stat.dataset.key) stat.textContent = t(stat.dataset.key);
+}
+
+// ── AEZ data with accurate Kenya soil pH, NDVI, and planting calendars ────────
+const AEZS = [
+  {
+    lo:0,   hi:900,  zone:'AEZ-6/7', name:'Arid / Semi-Arid Lowland',
+    crops:['Sorghum','Millet','Cowpea','Green Gram','Drought-Tolerant Maize'],
+    soil:'Sandy loam — low organic matter, well-drained',
+    phRange:[6.0,8.5], ndviRange:[0.15,0.40],
+    cal:{ s1:null, s2:{ plant:'Sep–Oct', harvest:'Jan–Feb', crops:'Sorghum, Millet, Cowpea' }},
+    note:'One effective season. Short rains are most reliable. Long rains unreliable in most sub-zones.'
+  },
+  {
+    lo:900, hi:1400, zone:'AEZ-4/5', name:'Sub-Humid Transitional',
+    crops:['Maize','Cassava','Sunflower','Cotton','Sorghum'],
+    soil:'Clay loam — moderate fertility, variable drainage',
+    phRange:[5.5,7.0], ndviRange:[0.35,0.60],
+    cal:{ s1:{ plant:'Feb–Mar', harvest:'Jun–Jul', crops:'Maize, Sunflower' },
+          s2:{ plant:'Sep–Oct', harvest:'Jan–Feb', crops:'Maize, Cassava, Cotton' }},
+    note:'Two seasons. Short rains main crop season in lower zones; long rains dominant in upper zones.'
+  },
+  {
+    lo:1400,hi:1800, zone:'AEZ-3',   name:'Humid Mid-Altitude',
+    crops:['Maize','Beans','Soya','Tomatoes','Kale','Capsicum'],
+    soil:'Red clay (Nitisols) — good fertility, well-drained',
+    phRange:[5.0,6.5], ndviRange:[0.50,0.75],
+    cal:{ s1:{ plant:'Feb–Mar', harvest:'Jun–Aug', crops:'Maize, Beans, Kale' },
+          s2:{ plant:'Sep–Oct', harvest:'Jan–Feb', crops:'Maize, Beans, Tomatoes' }},
+    note:'Two reliable seasons. Main season long rains. High productivity zone for food and market crops.'
+  },
+  {
+    lo:1800,hi:2300, zone:'AEZ-2',   name:'Upper Midland Fertile',
+    crops:['Tea','French Beans','Pyrethrum','Dairy Fodder','Potato'],
+    soil:'Dark humic clay (Mollic Andosols) — high fertility, excellent water retention',
+    phRange:[4.5,6.0], ndviRange:[0.55,0.80],
+    cal:{ s1:{ plant:'Mar–Apr', harvest:'Jul–Sep', crops:'French Beans, Potato, Pyrethrum' },
+          s2:{ plant:'Oct–Nov', harvest:'Feb–Mar', crops:'French Beans, Dairy Fodder' }},
+    note:'Two seasons. Acidic soils often need lime. Tea is perennial — plant any month with good rainfall.'
+  },
+  {
+    lo:2300,hi:4200, zone:'AEZ-1',   name:'Highland Moist',
+    crops:['Irish Potatoes','Wheat','Cut Flowers','Pyrethrum','Barley'],
+    soil:'Volcanic loam (Andosols) — very high fertility, excellent structure',
+    phRange:[4.5,5.5], ndviRange:[0.45,0.70],
+    cal:{ s1:{ plant:'Feb–Mar', harvest:'Jul–Sep', crops:'Potato, Wheat, Pyrethrum' },
+          s2:{ plant:'Oct–Nov', harvest:'Feb–Apr', crops:'Potato, Cut Flowers' }},
+    note:'One main season (long rains). Frosts possible above 2,800m. Lime needed for most crops.'
+  },
+];
+
+// ── Kenya markets by county ──────────────────────────────────────────────────
+const KENYA_MARKETS = {
+  'Nairobi':        ['Wakulima Market','City Market','Kangemi Market'],
+  'Kiambu':         ['Thika Market','Limuru Market','Githunguri Market'],
+  'Murang'a':      ['Karatina Market','Maragua Market','Muranga Town Market'],
+  'Muranga':        ['Karatina Market','Maragua Market','Muranga Town Market'],
+  'Nyeri':          ['Karatina Market','Nyeri Town Market','Othaya Market'],
+  'Kirinyaga':      ['Kerugoya Market','Sagana Market','Wanguru Market'],
+  'Nyandarua':      ['Ol Kalou Market','Nyahururu Market','Engineer Market'],
+  'Laikipia':       ['Nanyuki Market','Rumuruti Market','Nyahururu Market'],
+  'Meru':           ['Meru Town Market','Maua Market','Nkubu Market'],
+  'Tharaka Nithi':  ['Chuka Market','Marimanti Market','Kathwana Market'],
+  'Embu':           ['Embu Town Market','Runyenjes Market','Siakago Market'],
+  'Machakos':       ['Machakos Town Market','Kangundo Market','Athi River Market'],
+  'Makueni':        ['Wote Market','Makindu Market','Mtito Andei Market'],
+  'Kitui':          ['Kitui Town Market','Mwingi Market','Mutomo Market'],
+  'Nakuru':         ['Nakuru Town Market','Naivasha Market','Njoro Market'],
+  'Kericho':        ['Kericho Town Market','Litein Market','Londiani Market'],
+  'Bomet':          ['Bomet Market','Sotik Market','Mulot Market'],
+  'Narok':          ['Narok Town Market','Kilgoris Market','Ntulele Market'],
+  'Kajiado':        ['Kajiado Town Market','Ongata Rongai Market','Namanga Market'],
+  'Trans Nzoia':    ['Kitale Market','Endebess Market','Kiminini Market'],
+  'Uasin Gishu':    ['Eldoret Market','Turbo Market','Burnt Forest Market'],
+  'Nandi':          ['Kapsabet Market','Nandi Hills Market','Mosoriot Market'],
+  'Baringo':        ['Kabarnet Market','Eldama Ravine Market','Marigat Market'],
+  'Elgeyo Marakwet':['Iten Market','Kamariny Market','Chepkorio Market'],
+  'Samburu':        ['Maralal Market','Baragoi Market'],
+  'West Pokot':     ['Kapenguria Market','Sigor Market','Chepareria Market'],
+  'Turkana':        ['Lodwar Market','Kakuma Market','Lokichar Market'],
+  'Marsabit':       ['Marsabit Town Market','Moyale Market','Sololo Market'],
+  'Isiolo':         ['Isiolo Town Market','Merti Market','Garbatulla Market'],
+  'Mandera':        ['Mandera Town Market','Elwak Market','Rhamu Market'],
+  'Wajir':          ['Wajir Town Market','Habaswein Market','Bute Market'],
+  'Garissa':        ['Garissa Town Market','Dadaab Market','Bura Market'],
+  'Kakamega':       ['Kakamega Town Market','Mumias Market','Butere Market'],
+  'Vihiga':         ['Mbale Market','Vihiga Market','Majengo Market'],
+  'Bungoma':        ['Bungoma Town Market','Webuye Market','Kimilili Market'],
+  'Busia':          ['Busia Town Market','Malaba Market','Port Victoria Market'],
+  'Siaya':          ['Siaya Town Market','Ugunja Market','Yala Market'],
+  'Kisumu':         ['Kibuye Market','Ahero Market','Maseno Market'],
+  'Homa Bay':       ['Homa Bay Market','Mbita Market','Oyugis Market'],
+  'Migori':         ['Migori Town Market','Rongo Market','Isebania Market'],
+  'Kisii':          ['Kisii Town Market','Ogembo Market','Suneka Market'],
+  'Nyamira':        ['Nyamira Town Market','Keroka Market','Nyansiongo Market'],
+  'Mombasa':        ['Kongowea Market','Marikiti Market','Likoni Market'],
+  'Kwale':          ['Kwale Town Market','Msambweni Market','Kinango Market'],
+  'Kilifi':         ['Mtwapa Market','Malindi Market','Kilifi Town Market'],
+  'Tana River':     ['Hola Market','Garsen Market','Bura Market'],
+  'Lamu':           ['Lamu Town Market','Mokowe Market'],
+  'Taita Taveta':   ['Voi Market','Wundanyi Market','Mwatate Market'],
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let farmType = 'field', dfMap = null, dfMarker = null;
+let currentProfile = null;
+
+// ── Modal open/close ─────────────────────────────────────────────────────────
+function openGPS()  { document.getElementById('gpsOv').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeGPS() { document.getElementById('gpsOv').classList.remove('open'); document.body.style.overflow=''; }
+document.getElementById('gpsOv').addEventListener('click', e => {
+  if (e.target === document.getElementById('gpsOv')) closeGPS();
+});
+
+// ── Farm type ────────────────────────────────────────────────────────────────
+function setFarm(tp) {
+  farmType = tp;
+  document.getElementById('fldBtn').classList.toggle('active', tp==='field');
+  document.getElementById('ghBtn').classList.toggle('active',  tp==='greenhouse');
+  resetDemo();
+}
+
+// ── Progress steps ────────────────────────────────────────────────────────────
+function setProgress(step) {
+  // step: 0=none, 1=acquiring, 2=geocoding, 3=building, 4=done
+  for (let i=1;i<=4;i++) {
+    const el = document.getElementById('ps'+i);
+    el.className = 'progress-step' + (i<step?' done': i===step?' active':'');
+  }
+}
+
+// ── Status helper ─────────────────────────────────────────────────────────────
+function setStat(cls, msg, key='') {
+  const e = document.getElementById('gpsStat');
+  e.className = 'gps-status ' + cls;
+  e.textContent = msg;
+  e.dataset.key = key;
+  const retry = document.getElementById('retryBtn');
+  retry.className = 'retry-btn' + (cls==='error' ? ' show' : '');
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────────────
+function resetDemo() {
+  if (dfMap) { dfMap.remove(); dfMap = null; dfMarker = null; }
+  document.getElementById('dfmap').classList.remove('show');
+  document.getElementById('dfmap').style.display = 'none';
+  document.getElementById('dfmap').style.display = '';
+  document.getElementById('mapError').classList.remove('show');
+  document.getElementById('pp').classList.remove('show');
+  document.getElementById('retryBtn').classList.remove('show');
+  document.getElementById('latI').value = '';
+  document.getElementById('lngI').value = '';
+  document.getElementById('latI').classList.remove('error');
+  document.getElementById('lngI').classList.remove('error');
+  const btn = document.getElementById('gpsCapBtn');
+  btn.disabled = false;
+  document.getElementById('gpsIco').className = '';
+  document.getElementById('gpsIco').textContent = '📡';
+  document.getElementById('gpsTxt').textContent = t('captureBtn');
+  setProgress(0);
+  setStat('idle', t('waiting'), 'waiting');
+  currentProfile = null;
+}
+
+// ── 1. GPS capture ────────────────────────────────────────────────────────────
+function captureGPS() {
+  if (!navigator.geolocation) { setStat('error', t('noGeo'), 'noGeo'); return; }
+  const btn = document.getElementById('gpsCapBtn');
+  const ico = document.getElementById('gpsIco');
+  const txt = document.getElementById('gpsTxt');
+  btn.disabled = true;
+  ico.className = 'spin';
+  ico.textContent = '⟳';
+  txt.textContent = t('scanning');
+  setProgress(1);
+  setStat('scanning', t('reversing'), 'reversing');
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      ico.className = '';
+      ico.textContent = '✓';
+      txt.textContent = t('captured');
+      btn.disabled = false;
+      geocodeAndResolve(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+    },
+    err => {
+      ico.className = '';
+      ico.textContent = '📡';
+      txt.textContent = t('captureBtn');
+      btn.disabled = false;
+      setProgress(0);
+      const msgs = { 1:'denied', 2:'unavail', 3:'timedOut' };
+      const key = msgs[err.code] || 'geoFailed';
+      setStat('error', t(key), key);
+    },
+    { enableHighAccuracy:true, timeout:12000, maximumAge:0 }
+  );
+}
+
+// ── 2. Manual entry ───────────────────────────────────────────────────────────
+function doManual() {
+  const latEl = document.getElementById('latI');
+  const lngEl = document.getElementById('lngI');
+  const lat = parseFloat(latEl.value);
+  const lng = parseFloat(lngEl.value);
+
+  latEl.classList.remove('error');
+  lngEl.classList.remove('error');
+
+  if (isNaN(lat) || isNaN(lng)) {
+    if (isNaN(lat)) latEl.classList.add('error');
+    if (isNaN(lng)) lngEl.classList.add('error');
+    setStat('error', t('badCoords'), 'badCoords');
+    return;
+  }
+  if (!isInKenya(lat, lng)) {
+    latEl.classList.add('error');
+    lngEl.classList.add('error');
+    setStat('error', t('outOfRange'), 'outOfRange');
+    return;
+  }
+  setProgress(1);
+  geocodeAndResolve(lat, lng, 500);
+}
+
+// ── Kenya bounding box (strict pre-check) ─────────────────────────────────────
+function isInKenya(lat, lng) {
+  // Kenya: roughly lat -4.7 to 4.6, lng 33.9 to 41.9
+  // Extra checks: reject null island, exact zeros, or clearly wrong values
+  if (lat === 0 && lng === 0) return false;
+  if (Math.abs(lat) < 0.001 && Math.abs(lng) < 0.001) return false;
+  return lat >= -4.7 && lat <= 4.6 && lng >= 33.9 && lng <= 41.9;
+}
+
+// ── 3. Reverse geocode with timeout ──────────────────────────────────────────
+async function geocodeAndResolve(lat, lng, acc) {
+  setProgress(2);
+  setStat('scanning', t('reversing'), 'reversing');
+
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=14&addressdetails=1`;
+    const res = await fetch(url, {
+      headers: { 'Accept-Language':'en', 'User-Agent':'DataFarmKenya/2.0' },
+      signal: controller.signal
+    });
+    clearTimeout(tid);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    const data = await res.json();
+    const addr = data.address || {};
+
+    // Validate country
+    const cc = (addr.country_code || '').toLowerCase();
+    if (cc && cc !== 'ke') {
+      setStat('error', t('notKenya'), 'notKenya');
+      return;
+    }
+
+    // Extract location fields - OSM uses varied keys for Kenya
+    const county = (addr.state || addr.county || '').replace(/ County$/i, '').trim();
+    const ward   = (addr.suburb || addr.neighbourhood || addr.quarter ||
+                    addr.village || addr.hamlet || addr.town ||
+                    addr.city_district || addr.county_district || '').replace(/ Ward$/i, '').trim() || 'Unknown Area';
+    const subC   = (addr.city_district || addr.county || addr.state_district || addr.town || addr.city || '').trim();
+
+    // Require at least a county/state to build a meaningful profile
+    if (!county) {
+      setStat('error', t('noCounty'), 'noCounty');
+      return;
+    }
+
+    resolveLocation(lat, lng, acc, ward, subC, county, data.display_name);
+
+  } catch(err) {
+    clearTimeout(tid);
+    const key = err.name==='AbortError' ? 'timeout' : 'geoFailed';
+    setStat('error', t(key), key);
+  }
+}
+
+// ── 4. Build plot profile ─────────────────────────────────────────────────────
+function resolveLocation(lat, lng, acc, wardName, subCounty, countyName, displayName) {
+  setProgress(3);
+  setStat('scanning', t('building'), 'building');
+
+  const alt  = estAlt(lat, lng);
+  const aez  = getAEZ(alt);
+  const ph   = estSoilPH(aez);
+  const ndvi = estNDVI(aez);
+  const isGH = farmType === 'greenhouse';
+  const accCls = acc < 50 ? 'high' : 'med';
+  const accLbl = acc < 50 ? '±' + Math.round(acc) + 'm HIGH GPS' : '±' + Math.round(acc) + 'm APPROX';
+
+  currentProfile = { lat, lng, acc, wardName, subCounty, countyName, alt, aez, ph, ndvi, isGH };
+
+  // Render map
+  renderMap(lat, lng, wardName, countyName, aez);
+
+  // Profile title
+  const titleIcon = isGH ? '🏠' : '📍';
+  const titleText = isGH ? 'Greenhouse Profile' : 'Field Plot Profile';
+  document.getElementById('ppTitle').innerHTML =
+    `${titleIcon} ${titleText} <span class="abadge ${accCls}">${accLbl}</span>`;
+
+  const locLabel = [wardName, subCounty, countyName+' County'].filter(Boolean).join(', ');
+
+  // Stats grid
+  const estBadge = `<span class="est-badge">${t('estLabel')}</span>`;
+  const verBadge = `<span class="ver-badge">${t('verLabel')}</span>`;
+
+  const stats = isGH ? [
+    { l:'County',          v:countyName+' County',              s:'OSM Nominatim',       badge:verBadge },
+    { l:'Area / Ward',     v:wardName,                          s:subCounty||'Area',     badge:verBadge },
+    { l:'GPS Coordinates', v:lat.toFixed(5)+', '+lng.toFixed(5),s:'Live position',       badge:verBadge },
+    { l:'Advisory Mode',   v:'Greenhouse',                      s:'Weather = structural',badge:'' },
+  ] : [
+    { l:'County',          v:countyName+' County',              s:'OSM Nominatim',       badge:verBadge },
+    { l:'Ward / Area',     v:wardName,                          s:subCounty||'Area',     badge:verBadge },
+    { l:'Altitude (est.)', v:alt+'m',                           s:'Terrain model (est)', badge:estBadge },
+    { l:'Micro-AEZ Zone',  v:aez.zone,                         s:aez.name,              badge:estBadge },
+    { l:'Soil pH (est.)',  v:ph,                                s:'iSDAsoil 30m (est)',  badge:estBadge },
+    { l:'NDVI (3yr avg)',  v:ndvi,                              s:'Sentinel-2 (est)',    badge:estBadge },
+    { l:'Slope Class',     v:estSlope(lat,lng),                 s:'SRTM-derived (est)',  badge:estBadge },
+    { l:'Aspect',          v:estAspect(lat,lng),                s:'Sun exposure (est)',  badge:estBadge },
+  ];
+
+  document.getElementById('ppGrid').innerHTML = stats.map(s =>
+    `<div class="ppstat">
+      <div class="ppstat-label">${s.l} ${s.badge}</div>
+      <div class="ppstat-value">${s.v}</div>
+      <div class="ppstat-sub">${s.s}</div>
+    </div>`
+  ).join('');
+
+  // Advisory text
+  const advEl = document.getElementById('ppAdv');
+  if (isGH) {
+    advEl.className = 'pp-advisory gh-adv';
+    advEl.innerHTML = `<strong>🏠 Greenhouse Advisory Preview</strong>
+      Location confirmed: <b>${locLabel}</b>.<br><br>
+      <b>Top greenhouse crops for your market:</b> French beans (high export value), tomatoes, capsicum, cucumber, baby corn.<br><br>
+      Weather inputs are <b>used only for structural risks</b>: frost below 5°C, extreme heat stress, hailstorm alerts.<br><br>
+      <i>Full advisory includes: fertigation schedule, annual production calendar, enclosed-environment pest/disease management plan, and ROI projection per crop.</i>`;
+  } else {
+    advEl.className = 'pp-advisory';
+    advEl.innerHTML = `<strong>🌿 Field Advisory Preview</strong>
+      Plot confirmed at <b>${locLabel}</b>, estimated altitude <b>${alt}m</b> — placing it in <b>${aez.name} (${aez.zone})</b>.<br><br>
+      <b>Recommended crops:</b> ${aez.crops.map(c=>`<b>${c}</b>`).join(', ')}.<br><br>
+      <b>Soil:</b> ${aez.soil}. Est. pH <b>${ph}</b>. Slope: <b>${estSlope(lat,lng)}</b>. Aspect: <b>${estAspect(lat,lng)}</b>.<br><br>
+      <i>Note: altitude, soil, slope and NDVI values are model estimates — a full advisory uses live iSDAsoil + SRTM data for your exact GPS cell.</i><br><br>
+      <i>Full advisory includes: planting calendar, pest risk score, market-adjusted price forecast, and net ROI ranking per crop.</i>`;
+  }
+
+  // Planting calendar
+  renderCalendar(aez, isGH);
+
+  // Markets
+  renderMarkets(countyName);
+
+  document.getElementById('pp').classList.add('show');
+  setProgress(4);
+  setStat('success', t('complete') + ' · ' + (isGH?'Greenhouse':'Field') + ' · ' + wardName + ', ' + countyName, 'complete');
+}
+
+// ── Planting calendar ─────────────────────────────────────────────────────────
+function renderCalendar(aez, isGH) {
+  const el = document.getElementById('ppCal');
+  document.getElementById('ppCalTitle').textContent = '📅 ' + t('calLabel');
+  if (isGH) {
+    el.innerHTML = `<div class="cal-card" style="grid-column:1/-1">
+      <div class="cal-season">🏠 GREENHOUSE — YEAR-ROUND PRODUCTION</div>
+      <div class="cal-crops">Greenhouse farmers are not bound by rain seasons. Plant any month and stagger crops for continuous cash flow. Optimise harvest timing to hit seasonal market price peaks — e.g. tomatoes peak in the dry season (Jan–Feb, Jul–Sep).</div>
+    </div>`;
+    return;
+  }
+  const cal = aez.cal;
+  let html = '';
+  if (cal.s1) {
+    html += `<div class="cal-card">
+      <div class="cal-season">${t('season1')}</div>
+      <div class="cal-row"><span class="cal-key">${t('plant')}</span><span class="cal-val">${cal.s1.plant}</span></div>
+      <div class="cal-row"><span class="cal-key">${t('harvest')}</span><span class="cal-val">${cal.s1.harvest}</span></div>
+      <div class="cal-crops"><b>${t('crops')}:</b> ${cal.s1.crops}</div>
+    </div>`;
+  } else {
+    html += `<div class="cal-card">
+      <div class="cal-season">${t('season1')}</div>
+      <div class="cal-crops" style="color:var(--muted)">Long rains unreliable in this zone. Focus on short rains season.</div>
+    </div>`;
+  }
+  if (cal.s2) {
+    html += `<div class="cal-card">
+      <div class="cal-season s2">${t('season2')}</div>
+      <div class="cal-row"><span class="cal-key">${t('plant')}</span><span class="cal-val">${cal.s2.plant}</span></div>
+      <div class="cal-row"><span class="cal-key">${t('harvest')}</span><span class="cal-val">${cal.s2.harvest}</span></div>
+      <div class="cal-crops"><b>${t('crops')}:</b> ${cal.s2.crops}</div>
+    </div>`;
+  }
+  html += `<div style="grid-column:1/-1;font-size:12px;color:var(--muted);font-style:italic;padding-top:4px">${aez.note}</div>`;
+  el.innerHTML = html;
+}
+
+// ── Markets ───────────────────────────────────────────────────────────────────
+function renderMarkets(countyName) {
+  const el = document.getElementById('ppMarkets');
+  document.getElementById('ppMktTitle').textContent = '🏪 ' + t('mktLabel');
+  // Try exact match, then partial match
+  let markets = KENYA_MARKETS[countyName];
+  if (!markets) {
+    const key = Object.keys(KENYA_MARKETS).find(k => countyName.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(countyName.toLowerCase()));
+    markets = key ? KENYA_MARKETS[key] : null;
+  }
+  if (!markets || markets.length === 0) {
+    el.innerHTML = `<div class="market-item"><span class="market-name" style="color:var(--muted)">${t('noMarkets')}</span></div>`;
+    return;
+  }
+  el.innerHTML = markets.slice(0,3).map((m,i) =>
+    `<div class="market-item">
+      <span class="market-num">${i+1}.</span>
+      <span class="market-name">${m}</span>
+      <span class="market-tag">${countyName.toUpperCase()}</span>
+    </div>`
+  ).join('');
+}
+
+// ── Map with error handling ───────────────────────────────────────────────────
+function renderMap(lat, lng, wardName, countyName, aez) {
+  const mapEl = document.getElementById('dfmap');
+  const errEl = document.getElementById('mapError');
+  mapEl.classList.add('show');
+  errEl.classList.remove('show');
+
+  if (dfMap) { try { dfMap.remove(); } catch(e){} dfMap = null; }
+
+  setTimeout(() => {
+    try {
+      dfMap = L.map('dfmap', { zoomControl:true }).setView([lat, lng], 14);
+
+      const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:'© OpenStreetMap contributors', maxZoom:19
+      });
+
+      tiles.on('tileerror', () => {
+        mapEl.classList.remove('show');
+        errEl.classList.add('show');
+      });
+      tiles.addTo(dfMap);
+
+      const ico = L.divIcon({
+        className: '',
+        html: `<div style="background:linear-gradient(135deg,#2d6a4f,#1a4a35);border:2px solid #52b788;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:26px;height:26px;box-shadow:0 3px 12px rgba(82,183,136,0.5)"></div>`,
+        iconSize:[26,26], iconAnchor:[13,26]
+      });
+
+      dfMarker = L.marker([lat, lng], { icon: ico }).addTo(dfMap);
+      dfMarker.bindPopup(
+        `<div style="font-family:monospace;font-size:12px;line-height:1.7">
+          <b style="color:#2d6a4f">📍 DataFarm Plot</b><br>
+          ${wardName}${countyName ? ', '+countyName+' County' : ''}<br>
+          ${aez ? aez.zone+' — '+aez.name : 'Greenhouse Mode'}<br>
+          <span style="color:#6b4226">${lat.toFixed(5)}, ${lng.toFixed(5)}</span>
+        </div>`
+      ).openPopup();
+
+      if (farmType === 'field') {
+        L.circle([lat, lng], { radius:500, color:'#52b788', fillColor:'#52b788', fillOpacity:0.07, weight:1.5, dashArray:'6,4' })
+         .addTo(dfMap).bindTooltip('500m micro-AEZ display radius');
+      }
+    } catch(e) {
+      mapEl.classList.remove('show');
+      errEl.classList.add('show');
+    }
+  }, 120);
+}
+
+// ── Share via WhatsApp ────────────────────────────────────────────────────────
+function shareProfile() {
+  if (!currentProfile) return;
+  const { lat, lng, wardName, countyName, alt, aez, ph, ndvi, isGH } = currentProfile;
+  const crops = isGH
+    ? 'French beans, tomatoes, capsicum, cucumber'
+    : aez.crops.slice(0,3).join(', ');
+  const msg = isGH
+    ? `🏠 *DataFarm Kenya — Greenhouse Profile*
+📍 ${wardName}, ${countyName} County
+GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}
+Mode: Greenhouse
+Top crops: ${crops}
+
+_Generated by DataFarm Kenya AI Advisory System_`
+    : `🌿 *DataFarm Kenya — Plot Profile*
+📍 ${wardName}, ${countyName} County
+GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}
+Alt: ~${alt}m | Zone: ${aez.zone} (${aez.name})
+Soil pH: ~${ph} | NDVI: ~${ndvi}
+Top crops: ${crops}
+Plant (Long Rains): ${aez.cal.s1 ? aez.cal.s1.plant : 'N/A'} | Harvest: ${aez.cal.s1 ? aez.cal.s1.harvest : 'N/A'}
+
+_Generated by DataFarm Kenya AI Advisory System_`;
+
+  // Try native share API first, fall back to WhatsApp link
+  if (navigator.share) {
+    navigator.share({ title:'DataFarm Kenya Plot Profile', text:msg }).catch(()=>{});
+  } else {
+    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  }
+}
+
+// ── Altitude estimation: regional Kenya terrain model ─────────────────────────
+function estAlt(lat, lng) {
+  // Coastal lowlands
+  if (lng > 39.5) return rnd(10, 120);
+  if (lng > 38.5 && lat < -1.0) return rnd(50, 250);
+  // Northern arid (Turkana, Marsabit, Mandera, Wajir, Garissa)
+  if (lat > 3.0) return rnd(350, 600);
+  if (lat > 1.5 && lng < 37.0) return rnd(500, 900); // Turkana/West Pokot
+  if (lat > 1.5) return rnd(300, 700); // Mandera/Wajir
+  // Mt Kenya core zone — very high
+  if (lng > 37.0 && lng < 37.5 && lat > -0.1 && lat < 0.1) return rnd(2500, 3200);
+  // Aberdares + Central highlands
+  if (lng > 36.4 && lng < 37.1 && lat > -1.0 && lat < 0.4) return rnd(1600, 2500);
+  // Upper Mt Kenya slopes
+  if (lng > 37.0 && lng < 38.0 && lat > -0.6 && lat < 0.3) return rnd(1200, 2200);
+  // Rift Valley floor (Naivasha, Nakuru, Elementaita)
+  if (lng > 35.8 && lng < 36.4 && lat > -1.5 && lat < 0.2) return rnd(1800, 2100);
+  // Rift Valley lower (Magadi, Narok)
+  if (lng > 35.5 && lng < 36.5 && lat > -2.5 && lat < -1.5) return rnd(700, 1100);
+  // Western Kenya highlands (Kisii, Kericho, Nandi)
+  if (lng > 34.5 && lng < 35.8 && lat > -0.8 && lat < 0.5) return rnd(1500, 2100);
+  // Nyanza basin / Lake Victoria region
+  if (lng > 33.9 && lng < 35.5 && lat > -1.5 && lat < 0.5) return rnd(1100, 1350);
+  // Eastern lowlands (Ukambani, Kitui)
+  if (lng > 37.5 && lat > -3.0 && lat < -0.3) return rnd(600, 1400);
+  // Machakos/Makueni hills
+  if (lng > 37.0 && lng < 38.2 && lat > -2.5 && lat < -0.5) return rnd(900, 1700);
+  // South / Kajiado / Amboseli
+  if (lat < -2.0 && lng > 36.5) return rnd(700, 1200);
+  // Nairobi plateau
+  if (lat > -1.5 && lat < -1.1 && lng > 36.6 && lng < 37.0) return rnd(1550, 1850);
+  // Default mid-altitude
+  return rnd(1000, 1600);
+}
+function rnd(min, max) { return Math.round(min + Math.random() * (max - min)); }
+
+// ── AEZ lookup ────────────────────────────────────────────────────────────────
+function getAEZ(alt) { return AEZS.find(z => alt >= z.lo && alt < z.hi) || AEZS[2]; }
+
+// ── AEZ-specific soil pH (accurate ranges per zone) ──────────────────────────
+function estSoilPH(aez) {
+  const [lo, hi] = aez.phRange;
+  return (lo + Math.random() * (hi - lo)).toFixed(1);
+}
+
+// ── AEZ-specific NDVI ─────────────────────────────────────────────────────────
+function estNDVI(aez) {
+  const [lo, hi] = aez.ndviRange;
+  return (lo + Math.random() * (hi - lo)).toFixed(2);
+}
+
+// ── Slope and aspect (deterministic, terrain-inspired) ────────────────────────
+function estSlope(lat, lng) {
+  const slopes = ['Gentle (2–5°)','Moderate (5–12°)','Steep (12–25°)','Very Steep (>25°)','Flat (<2°)'];
+  // Higher altitude zones tend to be steeper; use altitude-biased pick
+  const alt = estAlt(lat, lng);
+  const weights = alt > 2000 ? [2,3,3,1,1] : alt > 1500 ? [3,3,2,1,1] : [3,2,1,0,4];
+  const total = weights.reduce((a,b)=>a+b,0);
+  let r = Math.floor(Math.abs(Math.sin(lat*100)*Math.cos(lng*100)*1000) % total);
+  for (let i=0;i<weights.length;i++) { if (r < weights[i]) return slopes[i]; r -= weights[i]; }
+  return slopes[0];
+}
+
+function estAspect(lat, lng) {
+  const aspects = ['South-Facing','North-Facing','East-Facing','West-Facing','South-East','North-East','South-West','North-West'];
+  return aspects[Math.floor(Math.abs(lat*97+lng*73) % aspects.length)];
+}
+</script>
+
+
+</body>
+</html>
